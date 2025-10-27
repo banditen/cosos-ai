@@ -20,15 +20,24 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Import routes (will be added in Phase 1)
-# from routes import auth, chat, emails, integrations
+# Import routes
+from routes import auth_router, sync_router
+from routes.onboarding import router as onboarding_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifecycle management."""
     logger.info("🚀 COSOS API starting up...")
-    # Initialize services, connect to DB, etc.
+
+    # Test database connection
+    from database.client import test_connection
+    if test_connection():
+        logger.info("✅ Database connection successful")
+    else:
+        logger.warning("⚠️  Database connection failed")
+
     yield
+
     logger.info("🛑 COSOS API shutting down...")
     # Clean up resources
 
@@ -69,10 +78,10 @@ async def root():
         "health": "/health"
     }
 
-# Routes will be imported here
-# app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
-# app.include_router(chat.router, prefix="/api/v1/chat", tags=["chat"])
-# app.include_router(emails.router, prefix="/api/v1/emails", tags=["emails"])
+# Include routers
+app.include_router(auth_router, prefix="/api/v1")
+app.include_router(sync_router, prefix="/api/v1")
+app.include_router(onboarding_router, prefix="/api/v1")
 
 if __name__ == "__main__":
     import uvicorn

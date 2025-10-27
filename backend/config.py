@@ -2,44 +2,56 @@
 Configuration management for COSOS backend.
 """
 
-import os
+from typing import List
 from pydantic_settings import BaseSettings
+from pydantic import Field
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
-    
+
     # Environment
-    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
-    DEBUG: bool = os.getenv("DEBUG", "false").lower() == "true"
-    
+    ENVIRONMENT: str = "development"
+    DEBUG: bool = False
+
     # API
     API_HOST: str = "0.0.0.0"
-    API_PORT: int = int(os.getenv("PORT", 8000))
+    PORT: int = 8000
+    API_PORT: int = 8000
     API_TITLE: str = "COSOS API"
-    ALLOWED_ORIGINS: list = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
-    
+    ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:8000"
+
     # Database
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://localhost/cosos")
-    
+    DATABASE_URL: str = "postgresql://localhost/cosos"
+
     # Supabase
-    SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
-    SUPABASE_ANON_KEY: str = os.getenv("SUPABASE_ANON_KEY", "")
-    SUPABASE_SERVICE_KEY: str = os.getenv("SUPABASE_SERVICE_KEY", "")
-    
+    SUPABASE_URL: str = ""
+    SUPABASE_ANON_KEY: str = ""
+    SUPABASE_SERVICE_KEY: str = ""
+
     # OpenAI / LLM
-    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
-    OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4")
-    ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
-    
+    OPENAI_API_KEY: str = ""
+    OPENAI_MODEL: str = "gpt-4o-mini"
+    OPENAI_EMBEDDING_MODEL: str = "text-embedding-ada-002"
+    ANTHROPIC_API_KEY: str = ""
+
+    # Google OAuth
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
+    GOOGLE_REDIRECT_URI: str = "http://localhost:8000/api/v1/auth/google/callback"
+
     # Gmail Integration
-    GMAIL_CREDENTIALS_JSON: str = os.getenv("GMAIL_CREDENTIALS_JSON", "")
     GMAIL_SCOPES: list = [
         "https://www.googleapis.com/auth/gmail.readonly",
         "https://www.googleapis.com/auth/gmail.modify"
     ]
-    
+
+    # Google Calendar Integration
+    CALENDAR_SCOPES: list = [
+        "https://www.googleapis.com/auth/calendar.readonly"
+    ]
+
     # Security
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "dev-key-change-in-production")
+    SECRET_KEY: str = "dev-key-change-in-production"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
