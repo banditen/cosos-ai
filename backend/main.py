@@ -23,6 +23,9 @@ logger = logging.getLogger(__name__)
 # Import routes
 from routes import auth_router, sync_router
 from routes.onboarding import router as onboarding_router
+from routes.briefs import router as briefs_router
+from routes.projects import router as projects_router
+from routes.initiatives import router as initiatives_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -82,6 +85,9 @@ async def root():
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(sync_router, prefix="/api/v1")
 app.include_router(onboarding_router, prefix="/api/v1")
+app.include_router(briefs_router, prefix="/api/v1")
+app.include_router(projects_router, prefix="/api/v1")
+app.include_router(initiatives_router, prefix="/api/v1")
 
 if __name__ == "__main__":
     import uvicorn
