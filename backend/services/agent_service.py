@@ -180,15 +180,21 @@ class AgentService:
         
         # Parse the response
         analysis_json = json.loads(response.choices[0].message.content)
-        
+
+        # Debug logging
+        logger.info(f"AI Response: {json.dumps(analysis_json, indent=2)}")
+        logger.info(f"Time blocks in response: {len(analysis_json.get('time_blocks', []))}")
+
         # Convert to Pydantic models
         from models.brief import Priority, TimeBlock, QuickWin, Flag
-        
+
         priorities = [Priority(**p) for p in analysis_json.get("priorities", [])]
         time_blocks = [TimeBlock(**tb) for tb in analysis_json.get("time_blocks", [])]
         quick_wins = [QuickWin(**qw) for qw in analysis_json.get("quick_wins", [])]
         flags = [Flag(**f) for f in analysis_json.get("flags", [])]
-        
+
+        logger.info(f"Parsed time blocks: {len(time_blocks)}")
+
         return {
             "priorities": priorities,
             "time_blocks": time_blocks,

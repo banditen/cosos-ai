@@ -1,12 +1,25 @@
 # Development Guide
 
+**Last Updated:** October 28, 2025
+
 ## Local Setup
 
 ### Prerequisites
 - Python 3.11+
 - Node.js 18+
-- PostgreSQL 14+
 - Git
+- Supabase account (for database)
+- Google Cloud account (for OAuth)
+- OpenAI API key
+
+### Repository Structure
+
+**Main Repository (cosos-ai):**
+- `backend/` - FastAPI backend
+- `app/` - Next.js dashboard
+
+**Separate Repository (cosos-web):**
+- Landing page (optional for development)
 
 ### Backend Setup
 
@@ -15,7 +28,7 @@ cd backend
 
 # Create virtual environment
 python -m venv venv
-source venv/bin/activate
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
@@ -23,17 +36,24 @@ pip install -r requirements.txt
 # Copy environment file
 cp .env.example .env
 
-# Edit .env with your local configuration
+# Edit .env with your configuration:
+# - SUPABASE_URL
+# - SUPABASE_KEY
+# - OPENAI_API_KEY
+# - GOOGLE_CLIENT_ID
+# - GOOGLE_CLIENT_SECRET
+# - ALLOWED_ORIGINS (http://localhost:3000,http://localhost:3001)
+
 # Start development server
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 API docs available at: `http://localhost:8000/docs`
 
-### Frontend Setup
+### Frontend Setup (App)
 
 ```bash
-cd frontend
+cd app
 
 # Install dependencies
 npm install
@@ -41,12 +61,40 @@ npm install
 # Copy environment file
 cp .env.example .env.local
 
-# Edit .env.local with your configuration
+# Edit .env.local with your configuration:
+# - NEXT_PUBLIC_SUPABASE_URL
+# - NEXT_PUBLIC_SUPABASE_ANON_KEY
+# - NEXT_PUBLIC_API_URL=http://localhost:8000
+# - NEXT_PUBLIC_APP_URL=http://localhost:3000
+# - NEXT_PUBLIC_LANDING_URL=http://localhost:3001
+
 # Start development server
 npm run dev
 ```
 
-Frontend available at: `http://localhost:3000`
+App available at: `http://localhost:3000`
+
+### Landing Page Setup (Optional)
+
+```bash
+# Clone separate repository
+git clone https://github.com/banditen/cosos-web.git
+cd cosos-web
+
+# Install dependencies
+npm install
+
+# Copy environment file
+cp .env.example .env.local
+
+# Edit .env.local:
+# - NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# Start development server (runs on port 3001)
+npm run dev
+```
+
+Landing available at: `http://localhost:3001`
 
 ## Code Style
 
@@ -123,10 +171,16 @@ pytest tests/test_gmail_service.py::test_fetch_emails
 
 ### Frontend
 ```bash
-cd frontend
+cd app
 
 # Run tests (when added)
 npm test
+
+# Type check
+npm run type-check
+
+# Lint
+npm run lint
 ```
 
 ## Debugging

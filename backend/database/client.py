@@ -69,7 +69,8 @@ def test_connection() -> bool:
     """
     try:
         db = SessionLocal()
-        db.execute("SELECT 1")
+        from sqlalchemy import text
+        db.execute(text("SELECT 1"))
         db.close()
         logger.info("Database connection successful")
         return True

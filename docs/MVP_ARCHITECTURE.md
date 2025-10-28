@@ -1,8 +1,9 @@
 # COSOS MVP Architecture
 
-**Version:** 1.0  
-**Date:** October 27, 2025  
-**Goal:** Ship context-aware AI Chief of Staff in 8 weeks
+**Version:** 1.1
+**Date:** October 28, 2025
+**Status:** 60% Complete - Frontend Done, Agent Core Next
+**Goal:** Ship context-aware AI Chief of Staff in 2-3 weeks
 
 ---
 
@@ -316,37 +317,56 @@ User: "This is from a key customer, should be high"
 
 ---
 
-## 📅 8-Week Timeline
+## 📅 Updated Timeline (60% Complete)
 
-### Week 1-2: Foundation
-- ✅ Database schema
-- ✅ User models
-- ⏳ Onboarding flow
-- ⏳ Gmail + Calendar OAuth
+### ✅ Completed (Weeks 1-2)
+- ✅ Database schema (8 tables with RLS)
+- ✅ User models (Pydantic)
+- ✅ Gmail + Calendar OAuth
+- ✅ Email/Calendar sync service
+- ✅ Vector embedding service
+- ✅ **Complete frontend dashboard (Next.js 14)**
+- ✅ **Onboarding flow UI (4 steps)**
+- ✅ **Projects management interface**
+- ✅ **Separate landing page repository**
+- ✅ **Responsive design with Tailwind CSS**
 
-### Week 3-4: Agent Core
-- ⏳ Email/Calendar sync service
-- ⏳ Vector embedding service
-- ⏳ Agent reasoning engine
-- ⏳ Daily execution loop
+### 🚧 In Progress (Week 3)
+- [ ] Agent reasoning engine
+- [ ] Daily brief generation
+- [ ] Email analysis (priority, category, action items)
+- [ ] Context retrieval with RAG
+- [ ] Connect frontend to backend API
 
-### Week 5-6: Brief & Delivery
-- ⏳ Brief generation
-- ⏳ Email delivery
-- ⏳ Web dashboard
-- ⏳ Feedback mechanism
+### 📋 Planned (Week 4)
+- [ ] Background sync automation
+- [ ] Scheduled daily agent loop (7am)
+- [ ] Email delivery for briefs
+- [ ] Real-time dashboard updates
+- [ ] Testing & error handling
 
-### Week 7-8: Polish & Launch
-- ⏳ Testing
-- ⏳ Error handling
-- ⏳ Performance optimization
-- ⏳ Deploy to production
+### 🚀 Launch (Week 5)
+- [ ] Deploy backend to Railway/Render
+- [ ] Deploy app to Vercel (app.cosos.xyz)
+- [ ] Deploy landing to Vercel (cosos.xyz)
+- [ ] Custom domain setup
+- [ ] Production environment config
+- [ ] Beta testing
+- [ ] Launch! 🎉
 
 ---
 
 ## 🎯 Success Metrics
 
-**Week 8 Demo:**
+**Current Progress:**
+- ✅ Backend API: 100% complete
+- ✅ Frontend UI: 100% complete
+- ✅ Database: 100% complete
+- 🚧 Agent Core: 0% (next priority)
+- 🚧 Deployment: 0%
+- **Overall: 60% complete**
+
+**Launch Demo Goal:**
 > "Every morning at 7am, I get a brief that tells me my top 3 priorities, suggests when to do deep work, and flags anything urgent. It takes 2 minutes to read and saves me 30 minutes of 'figuring out my day'."
 
 **Key Metrics:**
@@ -357,13 +377,27 @@ User: "This is from a key customer, should be high"
 
 ---
 
-## 🚀 Next Steps
+## 🚀 Immediate Next Steps
 
-1. Set up Supabase project
-2. Run database migrations
-3. Build onboarding API endpoints
-4. Implement Gmail OAuth flow
-5. Build first version of agent loop
+### This Week (Priority 1)
+1. ✅ ~~Set up Supabase project~~ - DONE
+2. ✅ ~~Run database migrations~~ - DONE
+3. ✅ ~~Implement Gmail OAuth flow~~ - DONE
+4. ✅ ~~Build frontend dashboard~~ - DONE
+5. **Build agent reasoning engine** - IN PROGRESS
+6. **Implement daily brief generation** - NEXT
+7. **Connect frontend to backend** - NEXT
 
-**Let's ship! 🚀**
+### Next Week (Priority 2)
+1. Background sync automation
+2. Scheduled agent loop
+3. Email delivery
+4. Testing & polish
+
+### Week After (Priority 3)
+1. Deploy to production
+2. Beta testing
+3. Launch! 🚀
+
+**We're 60% there - let's finish strong! 🔥**
 

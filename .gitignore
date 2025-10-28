@@ -20,15 +20,15 @@ __pycache__/
 *.pyo
 *.pyd
 
-# Frontend
-frontend/node_modules/
-frontend/.next/
-frontend/out/
-frontend/build/
-frontend/.env.local
-frontend/.env.*.local
-frontend/.vercel
-frontend/.turbo
+# Frontend (app/)
+app/node_modules/
+app/.next/
+app/out/
+app/build/
+app/.env.local
+app/.env.*.local
+app/.vercel
+app/.turbo
 
 # IDE
 .vscode/
@@ -48,6 +48,20 @@ yarn-error.log*
 tmp/
 temp/
 *.tmp
+
+# Scripts (one-time use)
+scripts/
+
+# Temporary documentation (keep PRODUCT_ROADMAP.md and PROGRESS.md)
+*_SUMMARY.md
+FRONTEND_BACKEND_*.md
+OAUTH_*.md
+GOOGLE_OAUTH_*.md
+SUPABASE_*.md
+TEST_*.md
+DEPLOYMENT.md
+QUICK_START.md
+TECH_STACK_*.md
 
 # OS
 .DS_Store

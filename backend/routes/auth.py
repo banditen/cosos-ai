@@ -61,18 +61,20 @@ async def google_oauth_callback(
         integration = await gmail_service.handle_oauth_callback(code, user_id)
         
         logger.info(f"OAuth successful for user {user_id}")
-        
+
         # Redirect to frontend success page
-        # TODO: Update with actual frontend URL
+        # Use port 3001 for local development (3000 is often taken)
+        frontend_url = "http://localhost:3001"
         return RedirectResponse(
-            url=f"http://localhost:3000/auth/success?integration_id={integration['id']}"
+            url=f"{frontend_url}/dashboard?oauth_success=true&integration_id={integration['id']}"
         )
-        
+
     except Exception as e:
         logger.error(f"OAuth callback error: {e}")
         # Redirect to frontend error page
+        frontend_url = "http://localhost:3001"
         return RedirectResponse(
-            url=f"http://localhost:3000/auth/error?error={str(e)}"
+            url=f"{frontend_url}/dashboard?oauth_error={str(e)}"
         )
 
 
