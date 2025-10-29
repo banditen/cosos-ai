@@ -363,6 +363,122 @@ CREATE INDEX daily_briefs_user_id_idx ON daily_briefs(user_id);
 CREATE INDEX daily_briefs_date_idx ON daily_briefs(brief_date DESC);
 
 -- ============================================
+-- LINEAR INTEGRATION
+-- ============================================
+
+CREATE TABLE linear_issues (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+
+    -- Linear metadata
+    linear_id VARCHAR(255) UNIQUE NOT NULL,
+    linear_url TEXT,
+
+    -- Issue details
+    title TEXT NOT NULL,
+    description TEXT,
+    priority INTEGER, -- 0 = No priority, 1 = Urgent, 2 = High, 3 = Normal, 4 = Low
+
+    -- Status
+    state_id VARCHAR(255),
+    state_name VARCHAR(100),
+    state_type VARCHAR(50), -- started, unstarted, completed, canceled
+
+    -- Assignment
+    assignee_id VARCHAR(255),
+    assignee_name VARCHAR(255),
+
+    -- Project/Team
+    team_id VARCHAR(255),
+    team_name VARCHAR(255),
+    project_id VARCHAR(255),
+    project_name VARCHAR(255),
+
+    -- Dates
+    created_at_linear TIMESTAMP WITH TIME ZONE,
+    updated_at_linear TIMESTAMP WITH TIME ZONE,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    canceled_at TIMESTAMP WITH TIME ZONE,
+    due_date DATE,
+
+    -- Metadata
+    is_archived BOOLEAN DEFAULT false,
+    labels JSONB, -- Array of label objects
+
+    -- AI Analysis
+    priority_score INTEGER, -- 1-5, AI-determined priority
+    estimated_time INTEGER, -- Minutes
+
+    -- Sync metadata
+    synced_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE linear_issues ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can only access their own Linear issues"
+    ON linear_issues FOR ALL
+    USING (user_id = auth.uid());
+
+-- Indexes
+CREATE INDEX linear_issues_user_id_idx ON linear_issues(user_id);
+CREATE INDEX linear_issues_linear_id_idx ON linear_issues(linear_id);
+CREATE INDEX linear_issues_assignee_idx ON linear_issues(assignee_id);
+CREATE INDEX linear_issues_state_type_idx ON linear_issues(state_type);
+CREATE INDEX linear_issues_updated_at_idx ON linear_issues(updated_at_linear DESC);
+
+-- ============================================
+-- LINEAR PROJECTS
+-- ============================================
+
+CREATE TABLE linear_projects (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+
+    -- Linear metadata
+    linear_id VARCHAR(255) UNIQUE NOT NULL,
+    linear_url TEXT,
+
+    -- Project details
+    name TEXT NOT NULL,
+    description TEXT,
+
+    -- Status
+    state VARCHAR(50), -- planned, started, paused, completed, canceled
+
+    -- Team
+    team_id VARCHAR(255),
+    team_name VARCHAR(255),
+
+    -- Dates
+    start_date DATE,
+    target_date DATE,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    canceled_at TIMESTAMP WITH TIME ZONE,
+
+    -- Progress
+    progress FLOAT, -- 0.0 to 1.0
+
+    -- Metadata
+    is_archived BOOLEAN DEFAULT false,
+
+    -- Sync metadata
+    synced_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE linear_projects ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can only access their own Linear projects"
+    ON linear_projects FOR ALL
+    USING (user_id = auth.uid());
+
+-- Indexes
+CREATE INDEX linear_projects_user_id_idx ON linear_projects(user_id);
+CREATE INDEX linear_projects_linear_id_idx ON linear_projects(linear_id);
+CREATE INDEX linear_projects_state_idx ON linear_projects(state);
+
+-- ============================================
 -- FEEDBACK (User corrections to agent decisions)
 -- ============================================
 
@@ -370,18 +486,18 @@ CREATE TABLE feedback (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     brief_id UUID REFERENCES daily_briefs(id) ON DELETE CASCADE,
-    
+
     -- What was the feedback about?
     feedback_type VARCHAR(50), -- priority_correction, time_block_adjustment, etc.
-    
+
     -- Original vs corrected
     original_value JSONB,
     corrected_value JSONB,
     user_note TEXT, -- Optional explanation
-    
+
     -- Embeddings for learning
     feedback_embedding vector(1536),
-    
+
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -394,7 +510,7 @@ CREATE POLICY "Users can only access their own feedback"
 -- Indexes
 CREATE INDEX feedback_user_id_idx ON feedback(user_id);
 CREATE INDEX feedback_brief_id_idx ON feedback(brief_id);
-CREATE INDEX feedback_embedding_idx ON feedback 
+CREATE INDEX feedback_embedding_idx ON feedback
 USING ivfflat (feedback_embedding vector_cosine_ops);
 
 -- ============================================

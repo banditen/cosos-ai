@@ -23,6 +23,10 @@ google-auth>=2.25.2
 # HTTP clients
 httpx>=0.25.2
 aiohttp>=3.9.1
+requests>=2.31.0
+
+# Background jobs & scheduling
+apscheduler>=3.10.4
 
 # Security
 python-jose[cryptography]>=3.3.0

@@ -50,6 +50,12 @@ class Settings(BaseSettings):
         "https://www.googleapis.com/auth/calendar.readonly"
     ]
 
+    # Linear Integration
+    LINEAR_CLIENT_ID: str = ""
+    LINEAR_CLIENT_SECRET: str = ""
+    LINEAR_REDIRECT_URI: str = "http://localhost:8000/api/v1/linear/oauth/callback"
+    LINEAR_SCOPES: list = ["read", "write"]  # Linear OAuth scopes
+
     # Security
     SECRET_KEY: str = "dev-key-change-in-production"
     ALGORITHM: str = "HS256"

@@ -26,6 +26,8 @@ from routes.onboarding import router as onboarding_router
 from routes.briefs import router as briefs_router
 from routes.projects import router as projects_router
 from routes.initiatives import router as initiatives_router
+from routes.scheduler import router as scheduler_router
+from routes.linear import router as linear_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -39,10 +41,17 @@ async def lifespan(app: FastAPI):
     else:
         logger.warning("⚠️  Database connection failed")
 
+    # Start scheduler for automated jobs
+    from services.scheduler_service import get_scheduler
+    scheduler = get_scheduler()
+    scheduler.start()
+
     yield
 
     logger.info("🛑 COSOS API shutting down...")
-    # Clean up resources
+    # Shutdown scheduler
+    scheduler.shutdown()
+    logger.info("✅ Scheduler shutdown complete")
 
 app = FastAPI(
     title="COSOS API",
@@ -88,6 +97,8 @@ app.include_router(onboarding_router, prefix="/api/v1")
 app.include_router(briefs_router, prefix="/api/v1")
 app.include_router(projects_router, prefix="/api/v1")
 app.include_router(initiatives_router, prefix="/api/v1")
+app.include_router(scheduler_router, prefix="/api/v1")
+app.include_router(linear_router, prefix="/api/v1")
 
 if __name__ == "__main__":
     import uvicorn
