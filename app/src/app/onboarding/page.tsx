@@ -83,17 +83,17 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-background py-12">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700">Step {step} of 2</span>
-            <span className="text-sm text-gray-500">{step === 1 ? 'Business Context' : 'Connect Tools'}</span>
+            <span className="body-small font-medium text-foreground">Step {step} of 2</span>
+            <span className="body-small text-foreground/60">{step === 1 ? 'Business Context' : 'Connect Tools'}</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="w-full bg-accent-beige rounded-full h-2">
             <div
-              className="bg-primary-600 h-2 rounded-full transition-all duration-300"
+              className="bg-action h-2 rounded-full transition-all duration-300"
               style={{ width: `${(step / 2) * 100}%` }}
             ></div>
           </div>
@@ -101,7 +101,7 @@ export default function Onboarding() {
 
         {step === 1 && (
           <div className="card">
-            <h1 className="text-3xl font-bold mb-2">Welcome to COSOS! 👋</h1>
+            <h1 className="text-3xl font-bold mb-2">Welcome to Cosos! 👋</h1>
             <p className="text-gray-600 mb-8">
               Let's get to know your business so we can provide the best insights.
             </p>
@@ -184,7 +184,7 @@ export default function Onboarding() {
           <div className="card">
             <h1 className="text-3xl font-bold mb-2">Connect Your Tools 🔗</h1>
             <p className="text-gray-600 mb-8">
-              Connect Gmail and Calendar so COSOS can analyze your communications and schedule.
+              Connect Gmail and Calendar so Cosos can analyze your communications and schedule.
             </p>
 
             <div className="space-y-6">

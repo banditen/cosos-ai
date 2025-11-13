@@ -25,13 +25,13 @@ export default function Dashboard() {
         return;
       }
 
-      // Check if user has completed onboarding
+      // Check if user has completed setup
       try {
         await apiClient.onboarding.getContext(user.id);
       } catch (error: any) {
         if (error.response?.status === 404) {
-          // No user context, redirect to onboarding
-          router.push('/onboarding');
+          // No user context, redirect to setup
+          router.push('/setup');
           return;
         }
       }
@@ -102,20 +102,20 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+      <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-gray-600 mt-1">
-              {new Date().toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
+            <h1 className="heading-2 text-foreground">Your Business, in Real Time</h1>
+            <p className="body text-foreground/70 mt-2">
+              {new Date().toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
               })}
             </p>
           </div>
@@ -140,9 +140,9 @@ export default function Dashboard() {
         {!brief ? (
           <div className="card text-center py-12">
             <div className="text-6xl mb-4">📋</div>
-            <h2 className="text-2xl font-bold mb-2">No Brief Yet</h2>
-            <p className="text-gray-600 mb-6">
-              Generate your first daily brief to get started!
+            <h2 className="heading-3 mb-3 text-foreground">Ready to Begin</h2>
+            <p className="body text-foreground/70 mb-6">
+              Generate your first daily brief to see what matters today.
             </p>
             <button onClick={handleGenerateBrief} className="btn-primary">
               Generate Today's Brief
@@ -153,15 +153,15 @@ export default function Dashboard() {
             {/* Summary */}
             {brief.summary && (
               <div className="card">
-                <h2 className="text-xl font-bold mb-3">📝 Summary</h2>
-                <p className="text-gray-700">{brief.summary}</p>
+                <h2 className="heading-3 mb-4 text-foreground">Summary</h2>
+                <p className="body text-foreground/80">{brief.summary}</p>
               </div>
             )}
 
             {/* Priorities */}
             {brief.priorities && brief.priorities.length > 0 && (
               <div className="card">
-                <h2 className="text-xl font-bold mb-4">🎯 Top Priorities</h2>
+                <h2 className="heading-3 mb-4 text-foreground">Top Priorities</h2>
                 <div className="space-y-4">
                   {brief.priorities.map((priority, index) => (
                     <div
@@ -173,11 +173,11 @@ export default function Dashboard() {
                             ? '#ef4444'
                             : priority.urgency === 'medium'
                             ? '#f59e0b'
-                            : '#10b981',
+                            : '#3B46F1',
                       }}
                     >
                       <div className="flex justify-between items-start">
-                        <h3 className="font-semibold text-gray-900">{priority.title}</h3>
+                        <h3 className="font-medium text-foreground">{priority.title}</h3>
                         <span
                           className={`text-xs px-2 py-1 rounded ${
                             priority.urgency === 'high'

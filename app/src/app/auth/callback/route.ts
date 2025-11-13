@@ -34,19 +34,19 @@ export async function GET(request: NextRequest) {
 
       if (data.user) {
         console.log('User authenticated:', data.user.email);
-        
-        // Check if user needs onboarding
+
+        // Check if user needs setup
         const { data: userContext } = await supabase
           .from('user_context')
           .select('id')
           .eq('user_id', data.user.id)
           .single();
 
-        // Redirect to onboarding if no context exists, otherwise to dashboard
+        // Redirect to setup if no context exists, otherwise to dashboard
         if (!userContext) {
-          return NextResponse.redirect(new URL('/onboarding', request.url));
+          return NextResponse.redirect(new URL('/setup', request.url));
         }
-        
+
         return NextResponse.redirect(new URL('/dashboard', request.url));
       }
     } catch (error) {

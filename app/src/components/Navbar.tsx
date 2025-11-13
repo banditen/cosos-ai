@@ -31,32 +31,32 @@ export default function Navbar() {
   const isActive = (path: string) => pathname === path;
 
   return (
-    <nav className="bg-white border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="bg-white border-b border-accent-beige">
+      <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
             <Link href="/" className="flex items-center">
-              <span className="text-2xl font-bold text-primary-600">COSOS</span>
+              <span className="text-2xl font-heading font-medium tracking-wide text-action">COSOS</span>
             </Link>
-            
+
             {user && (
               <div className="hidden sm:ml-8 sm:flex sm:space-x-8">
                 <Link
                   href="/dashboard"
-                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors ${
                     isActive('/dashboard')
-                      ? 'border-primary-500 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                      ? 'border-action text-foreground'
+                      : 'border-transparent text-foreground/60 hover:border-accent-beige hover:text-foreground'
                   }`}
                 >
                   Dashboard
                 </Link>
                 <Link
                   href="/projects"
-                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors ${
                     isActive('/projects')
-                      ? 'border-primary-500 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                      ? 'border-action text-foreground'
+                      : 'border-transparent text-foreground/60 hover:border-accent-beige hover:text-foreground'
                   }`}
                 >
                   Projects
@@ -68,10 +68,10 @@ export default function Navbar() {
           <div className="flex items-center">
             {user ? (
               <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-700">{user.email}</span>
+                <span className="text-sm text-foreground/70">{user.email}</span>
                 <button
                   onClick={handleSignOut}
-                  className="text-sm text-gray-500 hover:text-gray-700"
+                  className="text-sm text-foreground/60 hover:text-foreground transition-colors"
                 >
                   Sign Out
                 </button>

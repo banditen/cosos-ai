@@ -2,21 +2,101 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+}
+
 @layer components {
+  /* Primary Button - Minimalist */
   .btn-primary {
-    @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200;
+    @apply bg-action hover:opacity-90 text-white font-medium py-2 px-4 rounded-button transition-all duration-200 text-sm;
+    @apply shadow-sm hover:shadow-md;
   }
 
+  /* Secondary Button - Minimalist */
   .btn-secondary {
-    @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg transition-colors duration-200;
+    @apply bg-white hover:bg-accent-beige text-foreground font-medium py-2 px-4 rounded-button transition-all duration-200 text-sm;
+    @apply border border-accent-beige;
   }
 
+  /* Card - Minimalist */
   .card {
-    @apply bg-white rounded-lg shadow-md p-6 border border-gray-200;
+    @apply bg-white rounded-card p-4 border border-accent-beige;
+    @apply shadow-sm;
   }
 
+  /* Input - Minimalist */
   .input {
-    @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none;
+    @apply w-full px-3 py-1.5 border border-accent-beige rounded-input text-sm;
+    @apply focus:ring-2 focus:ring-action focus:border-action outline-none;
+    @apply bg-white text-foreground transition-all duration-200;
+  }
+
+  /* Headings with brand typography - Smaller sizes */
+  .heading-hero {
+    @apply font-heading text-4xl font-medium tracking-tight;
+  }
+
+  .heading-1 {
+    @apply font-heading text-3xl font-medium;
+  }
+
+  .heading-2 {
+    @apply font-heading text-2xl font-medium;
+  }
+
+  .heading-3 {
+    @apply font-heading text-xl font-medium;
+  }
+
+  /* Body text variants - Smaller sizes */
+  .body-large {
+    @apply font-body text-base;
+  }
+
+  .body {
+    @apply font-body text-sm;
+  }
+
+  .body-small {
+    @apply font-body text-xs;
+  }
+}
+
+@layer utilities {
+  /* Animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.4s ease-out;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
   }
 }
 

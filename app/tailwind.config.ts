@@ -9,33 +9,66 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Brand Identity Colors
+        background: '#F8F8F6',      // Soft ivory white — elegant base
+        accent: {
+          beige: '#E6E0D4',         // Champagne beige — warmth and sophistication
+          lavender: '#D3C9FF',      // Lavender-gray — signals intelligence and tech
+        },
+        foreground: '#1A1A1A',      // Deep graphite — modern, readable contrast
+        action: '#3B46F1',          // Muted electric blue — precision + premium tech energy
+
+        // Legacy primary/secondary for backward compatibility
         primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c4a6e',
+          DEFAULT: '#3B46F1',
+          50: '#f0f4ff',
+          100: '#e0e9ff',
+          200: '#c7d7fe',
+          300: '#a5bbfc',
+          400: '#8196f8',
+          500: '#3B46F1',
+          600: '#3239d9',
+          700: '#2a2eb8',
+          800: '#252895',
+          900: '#232679',
         },
         secondary: {
-          50: '#faf5ff',
-          100: '#f3e8ff',
-          200: '#e9d5ff',
-          300: '#d8b4fe',
-          400: '#c084fc',
-          500: '#a855f7',
-          600: '#9333ea',
-          700: '#7e22ce',
-          800: '#6b21a8',
-          900: '#581c87',
+          DEFAULT: '#E6E0D4',
+          50: '#faf9f7',
+          100: '#f5f3ef',
+          200: '#ebe7dd',
+          300: '#E6E0D4',
+          400: '#d4cbb9',
+          500: '#c2b69e',
+          600: '#a89a7f',
+          700: '#8d7f66',
+          800: '#756a55',
+          900: '#625949',
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        heading: ['Space Grotesk', 'system-ui', 'sans-serif'],
+        body: ['Figtree', 'system-ui', 'sans-serif'],
+        sans: ['Figtree', 'system-ui', 'sans-serif'],
+      },
+      spacing: {
+        'xs': '4px',
+        'sm': '8px',
+        'md': '16px',
+        'lg': '24px',
+        'xl': '32px',
+        '2xl': '48px',
+        '3xl': '64px',
+        '4xl': '96px',
+      },
+      borderRadius: {
+        'button': '24px',
+        'card': '16px',
+        'input': '12px',
+      },
+      maxWidth: {
+        'content': '1280px',
+        'text': '720px',
       },
     },
   },

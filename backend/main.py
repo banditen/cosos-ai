@@ -28,6 +28,8 @@ from routes.projects import router as projects_router
 from routes.initiatives import router as initiatives_router
 from routes.scheduler import router as scheduler_router
 from routes.linear import router as linear_router
+from routes.analysis import router as analysis_router
+from routes.setup import router as setup_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -55,7 +57,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="COSOS API",
-    description="AI Chief of Staff for founders",
+    description="The Engine Room That Runs With You — Proactive AI decision-maker for solopreneurs and early-stage CEOs",
     version="0.1.0",
     lifespan=lifespan
 )
@@ -83,7 +85,8 @@ async def health_check():
 async def root():
     """Root endpoint - API information."""
     return {
-        "name": "COSOS: AI Chief of Staff",
+        "name": "COSOS — The Engine Room That Runs With You",
+        "tagline": "Know if you're winning, every single day",
         "version": "0.1.0",
         "environment": os.getenv("ENVIRONMENT", "development"),
         "docs": "/docs",
@@ -99,6 +102,8 @@ app.include_router(projects_router, prefix="/api/v1")
 app.include_router(initiatives_router, prefix="/api/v1")
 app.include_router(scheduler_router, prefix="/api/v1")
 app.include_router(linear_router, prefix="/api/v1")
+app.include_router(analysis_router, prefix="/api/v1")
+app.include_router(setup_router, prefix="/api/v1")
 
 if __name__ == "__main__":
     import uvicorn

@@ -40,8 +40,8 @@ export default function AuthCallback() {
             .single();
 
           if (!context) {
-            // Redirect to onboarding
-            router.push('/onboarding');
+            // Redirect to setup
+            router.push('/setup');
           } else {
             // Redirect to dashboard
             router.push('/dashboard');

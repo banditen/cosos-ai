@@ -68,6 +68,22 @@ export const apiClient = {
     },
   },
 
+  // Analysis endpoints
+  analysis: {
+    analyzeWebsite: async (url: string): Promise<{ description: string; success: boolean }> => {
+      const response = await api.post('/api/v1/analysis/website', { url });
+      return response.data;
+    },
+  },
+
+  // Setup endpoints
+  setup: {
+    complete: async (userId: string, data: any) => {
+      const response = await api.post(`/api/v1/setup/complete?user_id=${userId}`, data);
+      return response.data;
+    },
+  },
+
   // Project endpoints
   projects: {
     list: async (userId: string, status?: string) => {

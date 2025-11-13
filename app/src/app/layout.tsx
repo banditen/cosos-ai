@@ -1,12 +1,24 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Space_Grotesk, Figtree } from 'next/font/google'
 import './globals.css'
 
-const inter = Inter({ subsets: ['latin'] })
+// Space Grotesk for headings
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  variable: '--font-heading',
+  weight: ['300', '400', '500', '600', '700'],
+})
+
+// Figtree for body text
+const figtree = Figtree({
+  subsets: ['latin'],
+  variable: '--font-body',
+  weight: ['300', '400', '500', '600', '700'],
+})
 
 export const metadata: Metadata = {
-  title: 'COSOS - AI Chief of Staff',
-  description: 'Your AI-powered Chief of Staff for founders and solopreneurs',
+  title: 'COSOS — The Engine Room That Runs With You',
+  description: 'The proactive AI decision-maker for solopreneurs and early-stage CEOs. Know if you\'re winning, every single day.',
 }
 
 export default function RootLayout({
@@ -16,7 +28,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={`${spaceGrotesk.variable} ${figtree.variable} font-body`}>{children}</body>
     </html>
   )
 }

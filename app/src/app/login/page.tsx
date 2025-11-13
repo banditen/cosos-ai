@@ -47,30 +47,30 @@ export default function Login() {
 
   if (checking) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-action"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-blue-50 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="max-w-md w-full">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Welcome to <span className="text-primary-600">COSOS</span>
+        <div className="text-center mb-12">
+          <h1 className="heading-1 text-foreground mb-3">
+            <span className="font-heading tracking-wide">COSOS</span>
           </h1>
-          <p className="text-gray-600">
-            Your AI Chief of Staff
+          <p className="body-large text-foreground/70">
+            The Engine Room That Runs With You
           </p>
         </div>
 
         <div className="card">
-          <h2 className="text-2xl font-bold mb-6 text-center">Sign In</h2>
+          <h2 className="heading-3 mb-8 text-center text-foreground">Sign In</h2>
 
           {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-800">{error}</p>
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-input">
+              <p className="body-small text-red-800">{error}</p>
             </div>
           )}
 
@@ -109,15 +109,15 @@ export default function Login() {
             )}
           </button>
 
-          <p className="text-sm text-gray-500 text-center mt-6">
+          <p className="body-small text-foreground/60 text-center mt-6">
             By signing in, you agree to our Terms of Service and Privacy Policy.
           </p>
         </div>
 
         <div className="text-center mt-8">
-          <a 
-            href={process.env.NEXT_PUBLIC_LANDING_URL || 'http://localhost:3001'}
-            className="text-sm text-gray-600 hover:text-primary-600"
+          <a
+            href={process.env.NEXT_PUBLIC_LANDING_URL || 'https://cosos.xyz'}
+            className="body-small text-foreground/60 hover:text-action transition-colors"
           >
             ← Back to homepage
           </a>
