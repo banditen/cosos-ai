@@ -76,6 +76,26 @@ export const apiClient = {
     },
   },
 
+  // Artifact endpoints
+  artifacts: {
+    generate: async (userId: string, data: { prompt: string; context?: any }) => {
+      const response = await api.post(`/api/v1/artifacts/generate?user_id=${userId}`, data);
+      return response.data;
+    },
+    get: async (userId: string, artifactId: string) => {
+      const response = await api.get(`/api/v1/artifacts/${artifactId}?user_id=${userId}`);
+      return response.data;
+    },
+    list: async (userId: string, limit: number = 50, offset: number = 0) => {
+      const response = await api.get(`/api/v1/artifacts?user_id=${userId}&limit=${limit}&offset=${offset}`);
+      return response.data;
+    },
+    update: async (userId: string, artifactId: string, updates: any) => {
+      const response = await api.put(`/api/v1/artifacts/${artifactId}?user_id=${userId}`, updates);
+      return response.data;
+    },
+  },
+
   // Setup endpoints
   setup: {
     complete: async (userId: string, data: any) => {

@@ -30,6 +30,7 @@ from routes.scheduler import router as scheduler_router
 from routes.linear import router as linear_router
 from routes.analysis import router as analysis_router
 from routes.setup import router as setup_router
+from routes.artifacts import router as artifacts_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -104,6 +105,7 @@ app.include_router(scheduler_router, prefix="/api/v1")
 app.include_router(linear_router, prefix="/api/v1")
 app.include_router(analysis_router, prefix="/api/v1")
 app.include_router(setup_router, prefix="/api/v1")
+app.include_router(artifacts_router, prefix="/api/v1")  # NEW: Artifact generation
 
 if __name__ == "__main__":
     import uvicorn

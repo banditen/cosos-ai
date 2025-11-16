@@ -5,19 +5,39 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import apiClient from '@/lib/api';
 import Loading from '@/components/Loading';
+import WelcomeScreen from '@/components/onboarding/WelcomeScreen';
+import StageScreen from '@/components/onboarding/StageScreen';
+import GoalScreen from '@/components/onboarding/GoalScreen';
+import ChallengeScreen from '@/components/onboarding/ChallengeScreen';
+import PromptScreen from '@/components/onboarding/PromptScreen';
+import GeneratingScreen from '@/components/onboarding/GeneratingScreen';
+import ResultScreen from '@/components/onboarding/ResultScreen';
 
-export default function Onboarding() {
+type OnboardingStep = 'welcome' | 'stage' | 'goal' | 'challenge' | 'prompt' | 'generating' | 'result';
+
+interface UserContext {
+  stage: string;
+  goal: string;
+  challenge?: string;
+}
+
+export default function OnboardingNew() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState({
-    businessMission: '',
-    businessStage: '',
-    quarterlyGoals: '',
-    currentChallenges: '',
+  const [step, setStep] = useState<OnboardingStep>('welcome');
+  
+  // Context data
+  const [context, setContext] = useState<UserContext>({
+    stage: '',
+    goal: '',
+    challenge: ''
   });
+  
+  // Prompt data
+  const [prompt, setPrompt] = useState('');
+  const [generating, setGenerating] = useState(false);
+  const [artifact, setArtifact] = useState<any>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -32,49 +52,52 @@ export default function Onboarding() {
     checkAuth();
   }, [router]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+  const handleStageSelect = (stage: string) => {
+    setContext({ ...context, stage });
+    setStep('goal');
   };
 
-  const handleSubmitContext = async () => {
-    if (!user) return;
+  const handleGoalSelect = (goal: string) => {
+    setContext({ ...context, goal });
+    setStep('challenge');
+  };
 
-    setSaving(true);
+  const handleChallengeSubmit = (challenge: string) => {
+    setContext({ ...context, challenge });
+    setStep('prompt');
+  };
+
+  const handleSkipChallenge = () => {
+    setStep('prompt');
+  };
+
+  const handlePromptSubmit = async () => {
+    if (!prompt.trim() || !user) return;
+
+    setGenerating(true);
+    setStep('generating');
+
     try {
-      const context = {
-        business_mission: formData.businessMission,
-        business_stage: formData.businessStage,
-        quarterly_goals: formData.quarterlyGoals.split('\n').filter(g => g.trim()),
-        current_challenges: formData.currentChallenges.split('\n').filter(c => c.trim()),
-        tone_preference: 'professional',
-      };
+      console.log('Generating artifact with:', { userId: user.id, prompt, context });
+      const response = await apiClient.artifacts.generate(user.id, {
+        prompt,
+        context
+      });
 
-      await apiClient.onboarding.saveContext(user.id, context);
-      setStep(2);
-    } catch (error) {
-      console.error('Error saving context:', error);
-      alert('Failed to save context. Please try again.');
+      console.log('Artifact generated:', response);
+      setArtifact(response.artifact);
+      setStep('result');
+    } catch (error: any) {
+      console.error('Error generating artifact:', error);
+      console.error('Error details:', error.response?.data || error.message);
+      alert(`Failed to generate artifact: ${error.response?.data?.detail || error.message || 'Unknown error'}`);
+      setStep('prompt');
     } finally {
-      setSaving(false);
+      setGenerating(false);
     }
   };
 
-  const handleConnectGoogle = async () => {
-    if (!user) return;
-
-    try {
-      const { url } = await apiClient.auth.getGoogleOAuthUrl(user.id);
-      window.location.href = url;
-    } catch (error) {
-      console.error('Error getting OAuth URL:', error);
-      alert('Failed to connect Google. Please try again.');
-    }
-  };
-
-  const handleSkipToSync = () => {
+  const handleGoToDashboard = () => {
     router.push('/dashboard');
   };
 
@@ -83,137 +106,60 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-background py-12">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-2">
-            <span className="body-small font-medium text-foreground">Step {step} of 2</span>
-            <span className="body-small text-foreground/60">{step === 1 ? 'Business Context' : 'Connect Tools'}</span>
-          </div>
-          <div className="w-full bg-accent-beige rounded-full h-2">
-            <div
-              className="bg-action h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(step / 2) * 100}%` }}
-            ></div>
-          </div>
-        </div>
-
-        {step === 1 && (
-          <div className="card">
-            <h1 className="text-3xl font-bold mb-2">Welcome to Cosos! 👋</h1>
-            <p className="text-gray-600 mb-8">
-              Let's get to know your business so we can provide the best insights.
-            </p>
-
-            <div className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  What's your mission? What are you building? *
-                </label>
-                <textarea
-                  name="businessMission"
-                  value={formData.businessMission}
-                  onChange={handleInputChange}
-                  rows={3}
-                  className="input"
-                  placeholder="e.g., Building an AI Chief of Staff for founders to help them execute, prioritize, and plan"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  What stage is your business at? *
-                </label>
-                <select
-                  name="businessStage"
-                  value={formData.businessStage}
-                  onChange={handleInputChange}
-                  className="input"
-                  required
-                >
-                  <option value="">Select...</option>
-                  <option value="idea">Idea Stage</option>
-                  <option value="mvp">Building MVP</option>
-                  <option value="launched">Launched</option>
-                  <option value="scaling">Scaling</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  What are your top 3 goals this quarter? (one per line)
-                </label>
-                <textarea
-                  name="quarterlyGoals"
-                  value={formData.quarterlyGoals}
-                  onChange={handleInputChange}
-                  rows={4}
-                  className="input"
-                  placeholder="e.g., Launch MVP by Nov 30&#10;Get 10 beta users&#10;Achieve 80% daily engagement"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  What are your biggest challenges right now? (one per line)
-                </label>
-                <textarea
-                  name="currentChallenges"
-                  value={formData.currentChallenges}
-                  onChange={handleInputChange}
-                  rows={4}
-                  className="input"
-                  placeholder="e.g., Too many emails to process&#10;Hard to prioritize tasks&#10;Context switching between projects"
-                />
-              </div>
-
-              <button
-                onClick={handleSubmitContext}
-                disabled={saving || !formData.businessMission || !formData.businessStage}
-                className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {saving ? 'Saving...' : 'Continue'}
-              </button>
-            </div>
-          </div>
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="w-full max-w-4xl">
+        {/* Welcome Screen */}
+        {step === 'welcome' && (
+          <WelcomeScreen onContinue={() => setStep('stage')} />
         )}
 
-        {step === 2 && (
-          <div className="card">
-            <h1 className="text-3xl font-bold mb-2">Connect Your Tools 🔗</h1>
-            <p className="text-gray-600 mb-8">
-              Connect Gmail and Calendar so Cosos can analyze your communications and schedule.
-            </p>
+        {/* Stage Selection */}
+        {step === 'stage' && (
+          <StageScreen 
+            onSelect={handleStageSelect}
+            onBack={() => setStep('welcome')}
+          />
+        )}
 
-            <div className="space-y-6">
-              <div className="border border-gray-200 rounded-lg p-6">
-                <div className="flex items-start space-x-4">
-                  <div className="text-4xl">📧</div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold mb-2">Gmail & Google Calendar</h3>
-                    <p className="text-sm text-gray-600 mb-4">
-                      We'll analyze your emails and calendar events to provide personalized insights.
-                      Your data is encrypted and never shared.
-                    </p>
-                    <button onClick={handleConnectGoogle} className="btn-primary">
-                      Connect Google Account
-                    </button>
-                  </div>
-                </div>
-              </div>
+        {/* Goal Selection */}
+        {step === 'goal' && (
+          <GoalScreen 
+            onSelect={handleGoalSelect}
+            onBack={() => setStep('stage')}
+          />
+        )}
 
-              <div className="text-center">
-                <button
-                  onClick={handleSkipToSync}
-                  className="text-sm text-gray-500 hover:text-gray-700"
-                >
-                  Skip for now
-                </button>
-              </div>
-            </div>
-          </div>
+        {/* Challenge Input */}
+        {step === 'challenge' && (
+          <ChallengeScreen
+            goal={context.goal}
+            onSubmit={handleChallengeSubmit}
+            onSkip={handleSkipChallenge}
+            onBack={() => setStep('goal')}
+          />
+        )}
+
+        {/* Prompt Input */}
+        {step === 'prompt' && (
+          <PromptScreen 
+            prompt={prompt}
+            setPrompt={setPrompt}
+            onSubmit={handlePromptSubmit}
+            onBack={() => setStep('challenge')}
+          />
+        )}
+
+        {/* Generating */}
+        {step === 'generating' && (
+          <GeneratingScreen />
+        )}
+
+        {/* Result */}
+        {step === 'result' && artifact && (
+          <ResultScreen 
+            artifact={artifact}
+            onGoToDashboard={handleGoToDashboard}
+          />
         )}
       </div>
     </div>
