@@ -44,24 +44,30 @@ It should feel calm, premium, and intelligent — never loud or "AI-hyped."
 ### Primary Typefaces
 
 **Headings:** Space Grotesk  
-**Body Text:** Söhne (fallback: Inter, system-ui)
+**Body Text:** Figtree (fallback: Inter, system-ui)
 
 **Characteristics:**
 - Geometric sans-serifs that blend modern utility with elegance
 - Headlines: Thin-to-medium weights with wide spacing → evokes luxury
 - Body text: Regular weight, ample line height → calm and readable
 
-### Type Scale
+### Type Scale (Minimalist Design - Updated)
 
 ```
-Hero Headline:     4.5rem / 72px (Space Grotesk, font-weight: 500)
-H1:                3rem / 48px (Space Grotesk, font-weight: 500)
-H2:                2.25rem / 36px (Space Grotesk, font-weight: 500)
-H3:                1.875rem / 30px (Space Grotesk, font-weight: 500)
-Body Large:        1.25rem / 20px (Söhne, font-weight: 400)
-Body:              1rem / 16px (Söhne, font-weight: 400)
-Body Small:        0.875rem / 14px (Söhne, font-weight: 400)
+Hero Headline:     2.25rem / 36px (Space Grotesk, font-weight: 500)
+H1:                1.875rem / 30px (Space Grotesk, font-weight: 500)
+H2:                1.5rem / 24px (Space Grotesk, font-weight: 500)
+H3:                1.25rem / 20px (Space Grotesk, font-weight: 500)
+Body Large:        1rem / 16px (Figtree, font-weight: 400)
+Body:              0.875rem / 14px (Figtree, font-weight: 400)
+Body Small:        0.75rem / 12px (Figtree, font-weight: 400)
 ```
+
+**Design Philosophy:**
+- Reduced all font sizes by ~40% for a more minimalist, compact aesthetic
+- Smaller typography creates more breathing room and reduces visual noise
+- Inspired by modern SaaS dashboards (Supabase, Linear, Vercel)
+- Maintains hierarchy while feeling lighter and more refined
 
 ### Example Headline Lockup
 
@@ -104,9 +110,14 @@ Use **COSOS** (all caps) in the mark for clarity and symmetry.
 - Clean, professional, intelligent
 
 **Microcopy Examples:**
-- "COSOS has prioritized your week based on company performance."
+- "Cosos has prioritized your week based on company performance."
 - "3 projects are ahead of schedule. 1 needs your input."
 - "Your business, in real time."
+
+**Branding Note:**
+- Use "Cosos" (title case) in all user-facing text and copy
+- Use "COSOS" (all caps) only in logo, wordmark, and page titles
+- This creates a friendly, approachable tone while maintaining brand recognition
 
 ---
 
@@ -152,10 +163,12 @@ Use these across ads, decks, or product intros:
 3. **Awareness over Alerts**: Information should be present, not pushy
 4. **Partnership over Tool**: Feel like a trusted advisor, not just software
 5. **Modern Minimalism**: Clean, spacious, elegant — never cluttered
+6. **Compact Efficiency**: Smaller typography and tighter spacing for maximum information density
+7. **Icons over Emojis**: Professional SVG icons (Lucide React) for a polished, consistent look
 
 ---
 
-## 📐 Spacing & Layout
+## 📐 Spacing & Layout (Minimalist Design - Updated)
 
 **Base Unit:** 8px
 
@@ -169,30 +182,46 @@ Use these across ads, decks, or product intros:
 - 3xl: 64px
 - 4xl: 96px
 
+**Design Philosophy:**
+- Tighter spacing throughout for a more compact, efficient feel
+- Reduced margins and padding by ~30-50% compared to traditional designs
+- More content visible without scrolling
+- Cleaner, more focused user experience
+
 **Container Max-Width:**
 - Content: 1280px
 - Text: 720px
 
 ---
 
-## 🎨 Component Styling Guidelines
+## 🎨 Component Styling Guidelines (Updated)
 
 ### Buttons
-- **Primary**: Background `#3B46F1`, white text, 24.1px border radius
+- **Primary**: Background `#3B46F1`, white text, 24px border radius
 - **Secondary**: White background, `#1A1A1A` text, subtle border
+- **Sizing**: Compact padding (`py-2 px-4`), smaller text (`text-sm`)
 - **Hover states**: Subtle opacity or color shift, never jarring
+- **Icons**: Use Lucide React icons (never emojis)
 
 ### Cards
 - Background: `#FFFFFF` or `#E6E0D4`
 - Border: Subtle, 1px, `#E6E0D4`
 - Border radius: 16px
 - Shadow: Minimal, soft
+- **Padding**: Reduced to `p-4` for more compact feel
 
 ### Input Fields
 - Background: `#FFFFFF`
 - Border: 1px solid `#E6E0D4`
 - Focus: Border color `#3B46F1`
 - Border radius: 12px
+- **Sizing**: Compact padding (`px-3 py-1.5`), smaller text (`text-sm`)
+
+### Icons
+- **Library**: Lucide React (professional SVG icons)
+- **Never use emojis** - always use proper icon components
+- **Sizing**: Typically `w-4 h-4` or `w-5 h-5` for minimalist feel
+- **Color**: Usually `text-action` for primary icons
 
 ---
 
@@ -206,19 +235,27 @@ Use these across ads, decks, or product intros:
 - ❌ Cluttered layouts
 - ❌ Aggressive animations
 - ❌ "AI hype" language
+- ❌ **Emojis in UI** - always use proper icon components (Lucide React)
+- ❌ Large, oversized typography - keep it minimal and compact
+- ❌ Excessive spacing - prefer tighter, more efficient layouts
 
 ---
 
 ## ✅ Implementation Checklist
 
-- [ ] Update global CSS with new color palette
-- [ ] Implement Space Grotesk and Söhne fonts
-- [ ] Update all button styles
-- [ ] Revise all copy to match brand voice
-- [ ] Update hero section
-- [ ] Update navigation
-- [ ] Update all section backgrounds
-- [ ] Review and update all microcopy
-- [ ] Ensure consistent spacing throughout
-- [ ] Test color contrast for accessibility
+- [x] Update global CSS with new color palette
+- [x] Implement Space Grotesk and Figtree fonts
+- [x] Update all button styles with compact sizing
+- [x] Revise all copy to match brand voice
+- [x] Update hero section
+- [x] Update navigation
+- [x] Update all section backgrounds
+- [x] Review and update all microcopy
+- [x] Ensure consistent spacing throughout (minimalist design)
+- [x] Test color contrast for accessibility
+- [x] Replace all emojis with Lucide React icons
+- [x] Implement minimalist typography scale (reduced sizes)
+- [x] Standardize "Cosos" vs "COSOS" usage
+- [x] Create complete setup flow with brand-compliant design
+- [x] Implement tighter spacing and compact components
 
