@@ -130,30 +130,137 @@ async def update_artifact(
 ) -> Artifact:
     """
     Update an artifact.
-    
+
     Args:
         artifact_id: Artifact ID
         user_id: User ID (for authorization)
         updates: Fields to update
-        
+
     Returns:
         Updated artifact
     """
     try:
         service = ArtifactService()
-        
+
         # Convert to dict and remove None values
         update_dict = {k: v for k, v in updates.dict().items() if v is not None}
-        
+
         artifact = await service.update_artifact(artifact_id, user_id, update_dict)
-        
+
         logger.info(f"Artifact updated: {artifact_id}")
-        
+
         return artifact
-        
+
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         logger.error(f"Error updating artifact: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.put("/{artifact_id}/data", response_model=Artifact)
+async def update_artifact_data(
+    artifact_id: str,
+    data: Dict[str, Any] = Body(..., embed=True, description="Artifact data to update")
+) -> Artifact:
+    """
+    Update artifact data (user-entered content).
+
+    This endpoint updates the data field within the artifact's content,
+    which stores user-entered information like OKR entries, KPI values, etc.
+
+    Args:
+        artifact_id: Artifact ID
+        data: New data to merge into artifact.content.data
+
+    Returns:
+        Updated artifact
+    """
+    try:
+        service = ArtifactService()
+        artifact = await service.update_artifact_data(artifact_id, data)
+
+        logger.info(f"Artifact data updated: {artifact_id}")
+
+        return artifact
+
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error updating artifact data: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/{artifact_id}")
+async def delete_artifact(
+    artifact_id: str,
+    user_id: str = Query(..., description="User ID")
+) -> Dict[str, str]:
+    """
+    Delete an artifact.
+
+    Args:
+        artifact_id: Artifact ID
+        user_id: User ID (for authorization)
+
+    Returns:
+        Success message
+    """
+    try:
+        service = ArtifactService()
+        await service.delete_artifact(artifact_id, user_id)
+
+        logger.info(f"Artifact deleted: {artifact_id}")
+
+        return {"message": "Artifact deleted successfully"}
+
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error deleting artifact: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/{artifact_id}/edit")
+async def edit_artifact_with_ai(
+    artifact_id: str,
+    user_id: str = Query(..., description="User ID"),
+    request_data: Dict[str, Any] = Body(..., description="Edit request data")
+) -> Dict[str, Any]:
+    """
+    Edit an artifact using AI based on user's message.
+
+    Args:
+        artifact_id: Artifact ID
+        user_id: User ID (for authorization)
+        request_data: Contains user_message and optional conversation_history
+
+    Returns:
+        Assistant message and updated artifact
+    """
+    try:
+        service = ArtifactService()
+
+        user_message = request_data.get("user_message")
+        if not user_message:
+            raise HTTPException(status_code=400, detail="user_message is required")
+
+        conversation_history = request_data.get("conversation_history", [])
+
+        result = await service.edit_artifact_with_ai(
+            artifact_id=artifact_id,
+            user_id=user_id,
+            user_message=user_message,
+            conversation_history=conversation_history
+        )
+
+        logger.info(f"Artifact edited via AI: {artifact_id}")
+
+        return result
+
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error editing artifact with AI: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 

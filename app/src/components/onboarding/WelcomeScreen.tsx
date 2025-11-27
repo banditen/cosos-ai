@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { Wallet, TrendingUp, Presentation, Rocket } from 'lucide-react';
 
 interface WelcomeScreenProps {
@@ -11,9 +12,14 @@ export default function WelcomeScreen({ onContinue }: WelcomeScreenProps) {
     <div className="text-center space-y-8 animate-fade-in">
       {/* Logo */}
       <div className="flex justify-center mb-8">
-        <div className="text-6xl font-bold tracking-tight">
-          <span className="text-foreground">COSOS</span>
-        </div>
+        <Image
+          src="/logo.png"
+          alt="Cosos"
+          width={200}
+          height={64}
+          className="object-contain"
+          priority
+        />
       </div>
 
       {/* Headline */}

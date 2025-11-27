@@ -17,8 +17,11 @@ const figtree = Figtree({
 })
 
 export const metadata: Metadata = {
-  title: 'COSOS — The Engine Room That Runs With You',
+  title: 'Cosos — The Engine Room That Runs With You',
   description: 'The proactive AI decision-maker for solopreneurs and early-stage CEOs. Know if you\'re winning, every single day.',
+  icons: {
+    icon: '/favicon.ico',
+  },
 }
 
 export default function RootLayout({

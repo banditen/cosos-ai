@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase, signInWithGoogle } from '@/lib/supabase';
 
@@ -57,9 +58,16 @@ export default function Login() {
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-12">
-          <h1 className="heading-1 text-foreground mb-3">
-            <span className="font-heading tracking-wide">COSOS</span>
-          </h1>
+          <div className="flex justify-center mb-4">
+            <Image
+              src="/logo.png"
+              alt="Cosos"
+              width={200}
+              height={64}
+              className="object-contain"
+              priority
+            />
+          </div>
           <p className="body-large text-foreground/70">
             The Engine Room That Runs With You
           </p>

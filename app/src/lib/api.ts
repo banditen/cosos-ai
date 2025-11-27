@@ -76,26 +76,6 @@ export const apiClient = {
     },
   },
 
-  // Artifact endpoints
-  artifacts: {
-    generate: async (userId: string, data: { prompt: string; context?: any }) => {
-      const response = await api.post(`/api/v1/artifacts/generate?user_id=${userId}`, data);
-      return response.data;
-    },
-    get: async (userId: string, artifactId: string) => {
-      const response = await api.get(`/api/v1/artifacts/${artifactId}?user_id=${userId}`);
-      return response.data;
-    },
-    list: async (userId: string, limit: number = 50, offset: number = 0) => {
-      const response = await api.get(`/api/v1/artifacts?user_id=${userId}&limit=${limit}&offset=${offset}`);
-      return response.data;
-    },
-    update: async (userId: string, artifactId: string, updates: any) => {
-      const response = await api.put(`/api/v1/artifacts/${artifactId}?user_id=${userId}`, updates);
-      return response.data;
-    },
-  },
-
   // Setup endpoints
   setup: {
     complete: async (userId: string, data: any) => {
@@ -152,6 +132,52 @@ export const apiClient = {
     },
     delete: async (initiativeId: string) => {
       const response = await api.delete(`/api/v1/initiatives/${initiativeId}`);
+      return response.data;
+    },
+  },
+
+  // Artifact endpoints
+  artifacts: {
+    list: async (userId: string) => {
+      const response = await api.get(`/api/v1/artifacts?user_id=${userId}`);
+      return response.data;
+    },
+    get: async (artifactId: string, userId: string) => {
+      const response = await api.get(`/api/v1/artifacts/${artifactId}?user_id=${userId}`);
+      return response.data;
+    },
+    generate: async (userId: string, prompt: string, context?: any) => {
+      const response = await api.post(`/api/v1/artifacts/generate?user_id=${userId}`, {
+        prompt,
+        context,
+      });
+      return response.data;
+    },
+    updateData: async (artifactId: string, data: Record<string, any>) => {
+      const response = await api.put(`/api/v1/artifacts/${artifactId}/data`, { data });
+      return response.data;
+    },
+    update: async (artifactId: string, userId: string, updates: { title?: string; description?: string }) => {
+      const response = await api.put(`/api/v1/artifacts/${artifactId}?user_id=${userId}`, updates);
+      return response.data;
+    },
+    delete: async (artifactId: string, userId: string) => {
+      const response = await api.delete(`/api/v1/artifacts/${artifactId}?user_id=${userId}`);
+      return response.data;
+    },
+    editWithAI: async (
+      artifactId: string,
+      userId: string,
+      userMessage: string,
+      conversationHistory?: Array<{ role: string; content: string }>
+    ) => {
+      const response = await api.post(
+        `/api/v1/artifacts/${artifactId}/edit?user_id=${userId}`,
+        {
+          user_message: userMessage,
+          conversation_history: conversationHistory || [],
+        }
+      );
       return response.data;
     },
   },

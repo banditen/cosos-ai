@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import apiClient from '@/lib/api';
-import Navbar from '@/components/Navbar';
-import Loading from '@/components/Loading';
 import DebugPanel from '@/components/DebugPanel';
 import type { DailyBrief } from '@/types';
+import type { Artifact } from '@/types/artifact';
+import { ArrowRight, RefreshCw, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -16,9 +17,10 @@ export default function Dashboard() {
   const [brief, setBrief] = useState<DailyBrief | null>(null);
   const [generating, setGenerating] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [artifacts, setArtifacts] = useState<Artifact[]>([]);
 
   useEffect(() => {
-    const checkAuth = async () => {
+    const loadData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         router.push('/');
@@ -37,10 +39,13 @@ export default function Dashboard() {
       }
 
       setUser(user);
-      await loadBrief(user.id);
+      await Promise.all([
+        loadBrief(user.id),
+        loadArtifacts(user.id)
+      ]);
       setLoading(false);
     };
-    checkAuth();
+    loadData();
   }, [router]);
 
   const loadBrief = async (userId: string) => {
@@ -50,6 +55,19 @@ export default function Dashboard() {
     } catch (error) {
       console.error('Error loading brief:', error);
       // Brief might not exist yet
+    }
+  };
+
+  const loadArtifacts = async (userId: string) => {
+    try {
+      const data = await apiClient.artifacts.list(userId);
+      // Filter to only show "activated" artifacts (those with integrations connected)
+      const activatedArtifacts = (data.artifacts || []).filter(
+        (artifact: Artifact) => artifact.integrations_connected && artifact.integrations_connected.length > 0
+      );
+      setArtifacts(activatedArtifacts);
+    } catch (error) {
+      console.error('Error loading artifacts:', error);
     }
   };
 
@@ -98,58 +116,120 @@ export default function Dashboard() {
   };
 
   if (loading) {
-    return <Loading />;
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-action"></div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
+    <div>
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="heading-2 text-foreground">Your Business, in Real Time</h1>
+          <p className="body text-foreground/70 mt-2">
+            {new Date().toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <Button
+            onClick={handleSyncAll}
+            disabled={syncing}
+            variant="outline"
+            className="gap-2"
+          >
+            <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+            {syncing ? 'Syncing...' : 'Sync Data'}
+          </Button>
+          <Button
+            onClick={handleGenerateBrief}
+            disabled={generating}
+            className="gap-2"
+          >
+            <Sparkles className="w-4 h-4" />
+            {generating ? 'Generating...' : 'Generate Brief'}
+          </Button>
+        </div>
+      </div>
 
-      <div className="max-w-content mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="heading-2 text-foreground">Your Business, in Real Time</h1>
-            <p className="body text-foreground/70 mt-2">
-              {new Date().toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
-            </p>
+      {/* Artifacts Section */}
+      {artifacts.length > 0 ? (
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="heading-3 text-foreground">Your Artifacts</h2>
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={() => router.push('/onboarding')}
+                variant="outline"
+              >
+                Create New
+              </Button>
+              <Button
+                onClick={() => router.push('/artifacts')}
+                variant="ghost"
+                className="gap-1"
+              >
+                View all
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
-          <div className="flex space-x-3">
-            <button
-              onClick={handleSyncAll}
-              disabled={syncing}
-              className="btn-secondary disabled:opacity-50"
-            >
-              {syncing ? 'Syncing...' : '🔄 Sync Data'}
-            </button>
-            <button
-              onClick={handleGenerateBrief}
-              disabled={generating}
-              className="btn-primary disabled:opacity-50"
-            >
-              {generating ? 'Generating...' : '✨ Generate Brief'}
-            </button>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {artifacts.slice(0, 3).map((artifact) => (
+              <div
+                key={artifact.id}
+                onClick={() => router.push(`/artifacts/${artifact.id}`)}
+                className="card hover:shadow-lg transition-shadow cursor-pointer"
+              >
+                <h3 className="font-medium text-foreground mb-2">{artifact.title}</h3>
+                <p className="body-small text-foreground/60 line-clamp-2">
+                  {artifact.description || 'No description'}
+                </p>
+                <div className="mt-4 flex items-center justify-between">
+                  <span className="text-xs text-foreground/40 capitalize">
+                    {artifact.type.replace(/_/g, ' ')}
+                  </span>
+                  <ArrowRight className="w-4 h-4 text-action" />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
+      ) : (
+        <div className="mt-8 card text-center py-8">
+          <h2 className="heading-3 mb-2 text-foreground">No Activated Artifacts</h2>
+          <p className="body text-foreground/60 mb-4">
+            Activate an artifact by connecting integrations to see it here
+          </p>
+          <Button
+            onClick={() => router.push('/artifacts')}
+          >
+            View All Artifacts
+          </Button>
+        </div>
+      )}
 
-        {!brief ? (
-          <div className="card text-center py-12">
-            <div className="text-6xl mb-4">📋</div>
-            <h2 className="heading-3 mb-3 text-foreground">Ready to Begin</h2>
-            <p className="body text-foreground/70 mb-6">
-              Generate your first daily brief to see what matters today.
-            </p>
-            <button onClick={handleGenerateBrief} className="btn-primary">
-              Generate Today's Brief
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-6">
+      {!brief ? (
+        <div className="card text-center py-12 mt-8">
+          <div className="text-6xl mb-4">📋</div>
+          <h2 className="heading-3 mb-3 text-foreground">Ready to Begin</h2>
+          <p className="body text-foreground/70 mb-6">
+            Generate your first daily brief to see what matters today.
+          </p>
+          <Button onClick={handleGenerateBrief} className="gap-2">
+            <Sparkles className="w-4 h-4" />
+            Generate Today's Brief
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-6 mt-8">
             {/* Summary */}
             {brief.summary && (
               <div className="card">
@@ -269,8 +349,8 @@ export default function Dashboard() {
               )}
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Debug Panel (only in development) */}
       {process.env.NODE_ENV === 'development' && <DebugPanel />}

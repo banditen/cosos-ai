@@ -79,18 +79,27 @@ export default function OnboardingNew() {
 
     try {
       console.log('Generating artifact with:', { userId: user.id, prompt, context });
-      const response = await apiClient.artifacts.generate(user.id, {
-        prompt,
-        context
-      });
+      const response = await apiClient.artifacts.generate(user.id, prompt, context);
 
       console.log('Artifact generated:', response);
       setArtifact(response.artifact);
       setStep('result');
     } catch (error: any) {
       console.error('Error generating artifact:', error);
-      console.error('Error details:', error.response?.data || error.message);
-      alert(`Failed to generate artifact: ${error.response?.data?.detail || error.message || 'Unknown error'}`);
+      console.error('Error response:', error.response);
+      console.error('Error data:', error.response?.data);
+      console.error('Error message:', error.message);
+
+      let errorMessage = 'Unknown error';
+      if (error.response?.data?.detail) {
+        errorMessage = typeof error.response.data.detail === 'string'
+          ? error.response.data.detail
+          : JSON.stringify(error.response.data.detail);
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      alert(`Failed to generate artifact: ${errorMessage}`);
       setStep('prompt');
     } finally {
       setGenerating(false);

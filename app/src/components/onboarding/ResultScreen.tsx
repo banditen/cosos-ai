@@ -1,14 +1,29 @@
 'use client';
 
+import { useState } from 'react';
 import { Check } from 'lucide-react';
-import ArtifactDisplay from '@/components/artifacts/ArtifactDisplay';
+import ArtifactRenderer from '@/components/artifacts/ArtifactRenderer';
+import { Artifact } from '@/types/artifact';
 
 interface ResultScreenProps {
-  artifact: any;
+  artifact: Artifact;
   onGoToDashboard: () => void;
 }
 
 export default function ResultScreen({ artifact, onGoToDashboard }: ResultScreenProps) {
+  const [artifactData, setArtifactData] = useState(artifact);
+
+  const handleDataUpdate = async (updatedData: Record<string, any>) => {
+    // Update local state
+    setArtifactData({
+      ...artifactData,
+      content: {
+        ...artifactData.content,
+        data: updatedData
+      }
+    });
+  };
+
   return (
     <div className="space-y-8 animate-fade-in">
       {/* Success header */}
@@ -20,17 +35,20 @@ export default function ResultScreen({ artifact, onGoToDashboard }: ResultScreen
         </div>
         <div>
           <h1 className="heading-1 text-foreground mb-2">
-            Your artifact is ready!
+            {artifactData.title}
           </h1>
           <p className="body text-foreground/60">
-            Here's what I created for you
+            {artifactData.description || "Here's what I created for you"}
           </p>
         </div>
       </div>
 
-      {/* Artifact display */}
-      <div className="max-w-4xl mx-auto">
-        <ArtifactDisplay artifact={artifact} />
+      {/* Artifact preview */}
+      <div className="max-w-6xl mx-auto">
+        <ArtifactRenderer
+          artifact={artifactData}
+          onDataUpdate={handleDataUpdate}
+        />
       </div>
 
       {/* Actions */}
@@ -46,7 +64,7 @@ export default function ResultScreen({ artifact, onGoToDashboard }: ResultScreen
       {/* Next steps hint */}
       <div className="text-center pt-4">
         <p className="body-small text-foreground/50">
-          You can create more artifacts anytime from your dashboard
+          Your artifact has been saved and is ready to use
         </p>
       </div>
     </div>

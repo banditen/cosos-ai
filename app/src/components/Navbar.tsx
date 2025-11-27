@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { supabase, signOut } from '@/lib/supabase';
@@ -36,7 +37,14 @@ export default function Navbar() {
         <div className="flex justify-between h-16">
           <div className="flex">
             <Link href="/" className="flex items-center">
-              <span className="text-2xl font-heading font-medium tracking-wide text-action">COSOS</span>
+              <Image
+                src="/logo.png"
+                alt="Cosos"
+                width={100}
+                height={32}
+                className="object-contain"
+                priority
+              />
             </Link>
 
             {user && (
@@ -50,6 +58,16 @@ export default function Navbar() {
                   }`}
                 >
                   Dashboard
+                </Link>
+                <Link
+                  href="/artifacts"
+                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors ${
+                    isActive('/artifacts')
+                      ? 'border-action text-foreground'
+                      : 'border-transparent text-foreground/60 hover:border-accent-beige hover:text-foreground'
+                  }`}
+                >
+                  Artifacts
                 </Link>
                 <Link
                   href="/projects"
