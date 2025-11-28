@@ -1,6 +1,6 @@
-# COSOS — The Engine Room That Runs With You
+# Cosos — The Engine Room That Runs With You
 
-**Set up your command center in 15 minutes. Get your first insight immediately.**
+**Create custom business dashboards in minutes using natural language.**
 
 Know if you're winning, every single day.
 
@@ -8,38 +8,39 @@ Know if you're winning, every single day.
 
 ---
 
-## 🎯 What is COSOS?
+## 🎯 What is Cosos?
 
-COSOS is not an assistant. It's not a tool. **It's your engine room.**
+Cosos is not an assistant. It's not a tool. **It's your engine room.**
 
 ### **The Problem:**
 Founders are drowning in chaos. Emails, meetings, tasks, metrics — but no clear system. No way to know if they're focusing on the right things. No confidence they're winning.
 
-### **How COSOS Works:**
+### **How Cosos Works:**
 
-**1. Quick Setup (15-20 minutes)**
-Define what matters:
-- **Your Key Projects** - The 3-5 things you're building
-- **Your Success Metrics** - The numbers that tell you if you're winning
-- **Your Goals** - What success looks like in 6 months
+**1. Create Custom Artifacts**
+Build exactly what you need using natural language:
+- **Describe your needs** - Tell the AI what you want to track
+- **AI generates the dashboard** - Custom metrics, trackers, and visualizations
+- **Refine with conversation** - Edit and improve through natural language
 
-**2. Immediate Value**
-Get your first insight right away:
-- What's happening in your business right now
-- What needs attention today
-- What's at risk, what's working
+**2. Track What Matters**
+Your custom artifacts help you:
+- Monitor key business metrics in real-time
+- Track progress on important initiatives
+- Visualize data that matters to your business
+- Stay focused on what drives results
 
-**3. Daily Intelligence (Every Morning)**
-COSOS analyzes everything automatically:
-- **Daily Insights** (7am) - What changed, what matters, what to do
-- **Weekly Digest** (Friday) - Progress on your projects, wins, risks
-- **Real-time Awareness** - Always know if you're winning
+**3. Evolve Your System**
+Artifacts grow with your business:
+- **Edit anytime** - Conversational AI sidebar for modifications
+- **Create new artifacts** - Build new trackers as needs change
+- **Activate what matters** - Focus on the most important metrics today
 
 ### **The Difference:**
 
-We don't wait for you to ask. We don't just summarize what happened. We don't automate tasks you define.
+We don't give you generic dashboards. We don't force you into templates. We don't make you learn complex tools.
 
-**We help you define what matters, then tell you every day if you're winning.**
+**We let you describe what you need, then build it for you instantly.**
 
 ### **Brand Essence:**
 
@@ -54,12 +55,12 @@ We don't wait for you to ask. We don't just summarize what happened. We don't au
 
 ### **Competitive Positioning:**
 
-| **Cofounder** | **Ambient** | **In Parallel** | **COSOS** |
-|---------------|-------------|-----------------|-----------|
-| Automates tasks you define | Preps meetings | Automates team routines | **Analyzes your business proactively** |
-| Reactive | Passive | Team-focused | **Founder-focused** |
-| Value after setup | Value after meetings | Value after adoption | **Value from Day 1** |
-| Measures tasks | Measures meetings | Measures team alignment | **Measures business outcomes** |
+| **Notion** | **Airtable** | **Retool** | **Cosos** |
+|------------|--------------|------------|-----------|
+| Templates you customize | Databases you configure | Apps you build | **Artifacts AI creates for you** |
+| Manual setup | Manual setup | Code required | **Natural language** |
+| Static dashboards | Complex formulas | Developer tool | **Conversational AI** |
+| One-size-fits-all | Flexible but complex | Powerful but technical | **Custom and simple** |
 
 ---
 
@@ -67,27 +68,34 @@ We don't wait for you to ask. We don't just summarize what happened. We don't au
 
 **Phase:** MVP in Production
 **Users:** Private Beta
-**Last Updated:** October 28, 2025
+**Last Updated:** November 28, 2024
 
 ### **What's Working:**
 
 - ✅ **Google OAuth Login** - Secure authentication via Supabase
-- ✅ **Onboarding Flow** - Capture business context before first use
-- ✅ **Gmail/Calendar OAuth** - Separate OAuth for API access
-- ✅ **Data Sync** - Automatic email and calendar event syncing
-- ✅ **Daily Briefs** - AI-generated briefs with:
-  - Top Priorities (what to focus on today)
-  - Time Blocks (when to work on what)
-  - Quick Wins (easy wins to build momentum)
-  - Flags (risks and blockers to address)
+- ✅ **AI-Powered Artifact Creation** - Natural language to custom dashboards
+- ✅ **Conversational Onboarding** - Multi-step flow to understand your business
+- ✅ **Dynamic Artifact Rendering** - Metrics, progress bars, data lists, text blocks
+- ✅ **Artifact Management** - Rename, delete, and activate artifacts
+- ✅ **Edit Sidebar** - Conversational AI for modifying artifacts in real-time
+- ✅ **Collapsible Sidebar** - Icon-based navigation with artifact submenu
+- ✅ **Custom Branding** - Logo and favicon integration
+
+### **Artifact Components:**
+
+- ✅ **MetricCard** - Display key business metrics with trends
+- ✅ **ProgressBar** - Visual progress tracking with percentages
+- ✅ **DataList** - Structured lists with icons and descriptions
+- ✅ **TextBlock** - Rich text content with headings
+- ✅ **InputForm** - Data entry forms for artifact updates
 
 ### **What's Next:**
 
-- 🎯 **Projects & Initiatives Tracking** (Q1 2026)
-- 🎯 **Outcome Correlation** - Track if priorities move metrics
-- 🎯 **Enhanced Email Intelligence** - Smarter categorization
-- 🎯 **Autonomous Task Creation** (Q2 2026)
-- 🎯 **Proactive Web Research** (Q2 2026)
+- 🎯 **Data Persistence** - Save and update artifact data
+- 🎯 **Real-time Collaboration** - Share artifacts with team members
+- 🎯 **Integrations** - Connect to external data sources (Stripe, Google Analytics, etc.)
+- 🎯 **Templates** - Pre-built artifact templates for common use cases
+- 🎯 **Mobile App** - Native mobile experience
 
 See `MISSION_STATEMENT.md` and `BUILD_STRATEGY.md` for full roadmap.
 
@@ -95,41 +103,41 @@ See `MISSION_STATEMENT.md` and `BUILD_STRATEGY.md` for full roadmap.
 
 ## 💎 Core Value Proposition
 
-### **1. Proactive Intelligence, Not Reactive Assistance**
+### **1. Natural Language Creation, Not Manual Configuration**
 
-**Others:** "Tell me what to automate" or "I'll prep you for meetings"
-**COSOS:** "Here's what you should do today to move your business forward"
+**Others:** "Configure these fields and formulas"
+**Cosos:** "Describe what you need, we'll build it"
 
-- We analyze without being asked - every morning, COSOS evaluates your business state
-- We recommend without prompting - priorities are generated based on strategic goals
-- We flag risks before they become problems - proactive alerts on blockers
+- Create dashboards by describing them in plain English
+- AI generates the exact structure and components you need
+- No templates, no configuration, no learning curve
 
-### **2. Business Progress, Not Task Completion**
+### **2. Conversational Editing, Not Complex UIs**
 
-**Others:** Measure tasks automated or meetings prepped
-**COSOS:** Measures business outcomes achieved
+**Others:** Navigate menus and settings to make changes
+**Cosos:** Chat with AI to modify your artifacts
 
-- We track what matters - revenue, user growth, product velocity
-- We connect actions to outcomes - every priority links to quarterly goals
-- We tell you if you're winning - daily assessment of business health
+- Edit sidebar with conversational interface
+- Describe changes in natural language
+- AI updates your artifact in real-time
 
-### **3. Day-0 Value, Not Setup Tax**
+### **3. Custom Built, Not One-Size-Fits-All**
 
-**Others:** Require automation design or meeting attendance
-**COSOS:** Delivers insights from your first sync
+**Others:** Templates you customize or databases you configure
+**Cosos:** Artifacts built specifically for your business
 
-- Immediate intelligence - analyze emails on day 1, generate actionable brief
-- No configuration required - AI understands your business from onboarding context
-- Progressive enhancement - gets smarter as you use it, but useful immediately
+- Every artifact is unique to your needs
+- No forcing your workflow into someone else's template
+- Evolves with your business through conversation
 
-### **4. Strategic Command, Not Tactical Execution**
+### **4. Instant Value, Not Setup Tax**
 
-**Others:** Execute workflows or summarize meetings
-**COSOS:** Directs your strategic focus
+**Others:** Hours of setup before you see value
+**Cosos:** Working dashboard in minutes
 
-- Time block optimization - tells you what to work on and when
-- Priority ranking - surfaces the 3-5 things that matter most today
-- Strategic reasoning - explains why each priority moves your business forward
+- Describe your needs in onboarding
+- Get your first artifact immediately
+- Start tracking what matters from day one
 
 ---
 
@@ -137,17 +145,17 @@ See `MISSION_STATEMENT.md` and `BUILD_STRATEGY.md` for full roadmap.
 
 **Your data is yours. Period.**
 
-COSOS is built with enterprise-grade security from day one:
+Cosos is built with enterprise-grade security from day one:
 
-- ✅ **Private by Design** - Your AI agent learns ONLY from your data, never shared across users
+- ✅ **Private by Design** - Your artifacts and data are never shared across users
 - ✅ **End-to-End Encryption** - All data encrypted in transit (TLS) and at rest (AES-256)
 - ✅ **Row-Level Security** - Supabase RLS ensures you can only access your own data
-- ✅ **OAuth 2.0** - Industry-standard authentication for Gmail/Calendar access
+- ✅ **OAuth 2.0** - Industry-standard authentication via Google
 - ✅ **No Data Sharing** - We never train models on your data or share with third parties
-- ✅ **SOC 2 Roadmap** - Building toward SOC 2 Type II compliance (Q3 2026)
+- ✅ **SOC 2 Roadmap** - Building toward SOC 2 Type II compliance
 - ✅ **GDPR/CCPA Ready** - Data deletion, export, and privacy controls
 
-**Your business intelligence stays with you.** COSOS is a tool you use and train for yourself, not a shared AI that learns from everyone.
+**Your business intelligence stays with you.** Cosos is a tool you use and customize for yourself, not a shared platform that learns from everyone.
 
 ---
 
@@ -165,7 +173,9 @@ COSOS is built with enterprise-grade security from day one:
 ### Frontend
 - **Framework:** Next.js 14 (App Router)
 - **Language:** TypeScript
-- **UI:** Tailwind CSS + Headless UI
+- **UI:** Tailwind CSS + shadcn/ui (New York style)
+- **Icons:** Lucide React
+- **Fonts:** Space Grotesk (headings), Figtree (body)
 - **Auth:** Supabase Auth (Google OAuth)
 - **Deployment:** Vercel
 
@@ -230,15 +240,15 @@ npm run dev
 ### 4. Access the App
 
 Visit:
-- **Dashboard**: `http://localhost:3000`
+- **App**: `http://localhost:3000`
 - **API Docs**: `http://localhost:8000/docs`
 
 **First-time setup:**
 1. Sign in with Google
-2. Complete onboarding (business context)
-3. Connect Gmail/Calendar
-4. Sync data
-5. Generate your first brief!
+2. Complete onboarding flow (stage, goal, challenge, prompt)
+3. AI generates your first artifact
+4. Activate artifact to see it on your home page
+5. Edit, rename, or create more artifacts!
 
 > **Note**: See `docs/SETUP_GUIDE.md` for detailed setup instructions including Supabase, Google OAuth, and environment variables.
 
@@ -253,30 +263,51 @@ cosos-ai/
 │   ├── config.py              # Configuration
 │   ├── requirements.txt       # Python dependencies
 │   ├── models/                # Pydantic models
-│   │   ├── brief.py          # Brief data models
+│   │   ├── artifact.py       # Artifact data models
 │   │   └── user.py           # User data models
 │   ├── routes/               # API endpoints
 │   │   ├── auth.py           # Authentication
-│   │   ├── briefs.py         # Brief generation
-│   │   ├── integrations.py   # Gmail/Calendar OAuth
+│   │   ├── artifacts.py      # Artifact CRUD & AI generation
 │   │   └── onboarding.py     # User onboarding
 │   ├── services/             # Core business logic
-│   │   ├── agent_service.py  # AI agent (brief generation)
-│   │   ├── gmail_service.py  # Gmail integration
-│   │   ├── calendar_service.py # Calendar integration
+│   │   ├── artifact_service.py # AI artifact generation & editing
 │   │   └── supabase_service.py # Database operations
 │   └── utils/                # Utilities
 │
 ├── app/                       # Next.js frontend (app.cosos.xyz)
+│   ├── public/               # Static assets
+│   │   ├── logo.png          # Cosos logo
+│   │   └── favicon.ico       # Favicon
 │   ├── src/
 │   │   ├── app/              # App router pages
 │   │   │   ├── page.tsx      # Landing/redirect
 │   │   │   ├── login/        # Login page
-│   │   │   ├── dashboard/    # Main dashboard
+│   │   │   ├── (app)/        # Shared layout route group
+│   │   │   │   ├── layout.tsx # Sidebar layout
+│   │   │   │   ├── home/     # Home page (active artifact)
+│   │   │   │   └── artifacts/ # Artifact management
+│   │   │   │       ├── page.tsx # Artifacts list
+│   │   │   │       └── [id]/  # Individual artifact page
 │   │   │   └── onboarding/   # Onboarding flow
 │   │   ├── components/       # React components
+│   │   │   ├── app-sidebar.tsx # Collapsible sidebar
+│   │   │   ├── artifacts/    # Artifact components
+│   │   │   │   ├── ArtifactRenderer.tsx # Main renderer
+│   │   │   │   ├── ArtifactActions.tsx  # Rename/delete
+│   │   │   │   ├── EditArtifactSidebar.tsx # AI editing
+│   │   │   │   ├── MetricCard.tsx
+│   │   │   │   ├── ProgressBarComponent.tsx
+│   │   │   │   ├── DataList.tsx
+│   │   │   │   ├── TextBlock.tsx
+│   │   │   │   └── InputForm.tsx
+│   │   │   ├── onboarding/   # Onboarding screens
+│   │   │   └── ui/           # shadcn/ui components
 │   │   ├── lib/              # API client & utilities
+│   │   │   ├── api.ts        # API client
+│   │   │   ├── events.ts     # Custom event system
+│   │   │   └── utils.ts      # Utilities
 │   │   └── types/            # TypeScript types
+│   │       └── artifact.ts   # Artifact types
 │   └── package.json
 │
 ├── docs/                      # Documentation
@@ -306,40 +337,43 @@ The marketing landing page is in a **separate repository**:
 
 ## 🗺️ Product Roadmap
 
-### **Phase 1: Superior Intelligence (Q1 2026)** ✅ In Progress
-*Goal: Make our daily brief 10x more valuable than competitors*
+### **Phase 1: AI-Powered Artifact System** ✅ Complete
+*Goal: Create custom dashboards through natural language*
 
-- ✅ Proactive daily briefs with priorities, time blocks, quick wins, flags
-- ✅ Business context integration (mission, stage, goals, challenges)
-- ✅ Email and calendar analysis
-- ✅ Day-0 value from first sync
-- 🎯 Projects & initiatives tracking
-- 🎯 Outcome correlation (track if priorities move metrics)
-- 🎯 Enhanced email intelligence
+- ✅ Natural language artifact creation
+- ✅ Conversational onboarding flow
+- ✅ Dynamic artifact rendering (metrics, progress, lists, text)
+- ✅ Artifact management (rename, delete, activate)
+- ✅ AI-powered editing sidebar
+- ✅ Collapsible sidebar with artifact navigation
+- ✅ Custom branding and design system
 
-### **Phase 2: Autonomous Execution (Q2 2026)**
-*Goal: Match automation capabilities while keeping intelligence advantage*
+### **Phase 2: Data Integration (Q1 2025)**
+*Goal: Connect artifacts to real data sources*
 
-- 🎯 Auto-create tasks in Linear/Notion
-- 🎯 Draft emails with business context
-- 🎯 Proactive web research and competitor monitoring
-- 🎯 Self-improving recommendations based on outcomes
+- 🎯 Data persistence and updates
+- 🎯 External integrations (Stripe, Google Analytics, etc.)
+- 🎯 Real-time data syncing
+- 🎯 Manual data entry forms
+- 🎯 CSV/Excel import
 
-### **Phase 3: Strategic Co-Pilot (Q3 2026)**
-*Goal: Deliver strategic intelligence no competitor can match*
+### **Phase 3: Collaboration & Sharing (Q2 2025)**
+*Goal: Enable team collaboration on artifacts*
 
-- 🎯 Market intelligence integration
-- 🎯 Predictive analytics (runway, goal forecasts)
-- 🎯 Strategic scenario planning
-- 🎯 Autonomous research on demand
+- 🎯 Share artifacts with team members
+- 🎯 Real-time collaboration
+- 🎯 Comments and annotations
+- 🎯 Version history
+- 🎯 Export to PDF/PNG
 
-### **Phase 4: Command Center (Q4 2026)**
-*Goal: Become the operating system for early-stage companies*
+### **Phase 4: Intelligence & Automation (Q3 2025)**
+*Goal: Proactive insights and automated actions*
 
-- 🎯 Multi-agent orchestration (sales, product, finance agents)
-- 🎯 Real-time business dashboard
-- 🎯 Autonomous decision-making with guardrails
-- 🎯 Learning and adaptation engine
+- 🎯 AI-generated insights from artifact data
+- 🎯 Automated alerts and notifications
+- 🎯 Predictive analytics
+- 🎯 Automated data collection
+- 🎯 Smart recommendations
 
 See `MISSION_STATEMENT.md` and `BUILD_STRATEGY.md` for detailed roadmap.
 
@@ -349,14 +383,8 @@ See `MISSION_STATEMENT.md` and `BUILD_STRATEGY.md` for detailed roadmap.
 
 ### Backend (.env)
 ```
-# OpenAI / Claude
+# OpenAI
 OPENAI_API_KEY=sk-...
-OPENAI_MODEL=gpt-4
-ANTHROPIC_API_KEY=sk-ant-...
-
-# Gmail
-GMAIL_CREDENTIALS_JSON=<base64-encoded-service-account>
-GMAIL_REDIRECT_URI=http://localhost:8000/auth/gmail/callback
 
 # Supabase
 SUPABASE_URL=https://xxx.supabase.co
@@ -364,7 +392,6 @@ SUPABASE_ANON_KEY=eyJxxx...
 SUPABASE_SERVICE_KEY=eyJxxx...
 
 # App
-DATABASE_URL=postgresql://user:password@localhost:5432/cosos
 ENVIRONMENT=development
 DEBUG=true
 SECRET_KEY=<random-secret>
@@ -515,4 +542,4 @@ Built with:
 
 **Built by a solo founder with AI assistance.**
 
-**Last updated:** October 28, 2025
+**Last updated:** November 28, 2024
