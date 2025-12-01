@@ -12,8 +12,8 @@ export default function Home() {
     // Check if user is already logged in
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
-        // User is logged in, redirect to dashboard
-        router.push('/dashboard');
+        // User is logged in, redirect to home
+        router.push('/home');
       } else {
         // User is not logged in, redirect to login page
         router.push('/login');

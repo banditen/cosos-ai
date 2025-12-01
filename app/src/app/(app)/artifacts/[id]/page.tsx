@@ -1,16 +1,26 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import apiClient from '@/lib/api';
 import ArtifactRenderer from '@/components/artifacts/ArtifactRenderer';
 import ArtifactActions from '@/components/artifacts/ArtifactActions';
-import EditArtifactSidebar from '@/components/artifacts/EditArtifactSidebar';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, PanelRight } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { ArrowLeft, Pencil, Check, Loader2, Play, FileText, LayoutDashboard, ChevronRight, FolderOpen, ArrowUp, PanelRight, PanelRightClose, Sparkles } from 'lucide-react';
 import { Artifact } from '@/types/artifact';
 import { notifyArtifactChanged } from '@/lib/events';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import Link from 'next/link';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+interface Message {
+  role: 'user' | 'assistant';
+  content: string;
+}
 
 export default function ArtifactViewPage() {
   const router = useRouter();
@@ -21,11 +31,30 @@ export default function ArtifactViewPage() {
   const [loading, setLoading] = useState(true);
   const [artifact, setArtifact] = useState<Artifact | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [showEditSidebar, setShowEditSidebar] = useState(false);
+
+  // View mode: spec or ui
+  const [viewMode, setViewMode] = useState<'spec' | 'ui'>('spec');
+
+  // Editing
+  const [isEditingSpec, setIsEditingSpec] = useState(false);
+  const [editableSpec, setEditableSpec] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Chat
+  const [chatOpen, setChatOpen] = useState(true);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     checkUser();
   }, []);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -41,58 +70,148 @@ export default function ArtifactViewPage() {
   const loadArtifact = async (id: string, userId: string) => {
     try {
       setError(null);
-      console.log('🔍 Loading artifact:', id);
-      const artifact = await apiClient.artifacts.get(id, userId);
-      console.log('✅ Artifact loaded:', artifact);
-      setArtifact(artifact);
-    } catch (error) {
-      console.error('❌ Error loading artifact:', error);
-      setError('Failed to load artifact. It may not exist or you may not have permission to view it.');
-    }
-  };
+      const loadedArtifact = await apiClient.artifacts.get(id, userId);
+      setArtifact(loadedArtifact);
 
-  const handleDataUpdate = async (artifactId: string, data: Record<string, any>) => {
-    try {
-      // Update artifact data via API
-      await apiClient.artifacts.updateData(artifactId, data);
+      // Load conversation history if exists
+      if (loadedArtifact.conversation_history && loadedArtifact.conversation_history.length > 0) {
+        setMessages(loadedArtifact.conversation_history);
+      }
 
-      // Reload artifact to get fresh data
-      if (user) {
-        await loadArtifact(artifactId, user.id);
+      // Set view mode based on phase
+      if (loadedArtifact.phase === 'ui' && loadedArtifact.content?.components?.length > 0) {
+        setViewMode('ui');
+      } else {
+        setViewMode('spec');
       }
     } catch (error) {
-      console.error('Error updating artifact data:', error);
+      console.error('Error loading artifact:', error);
+      setError('Failed to load artifact.');
     }
   };
 
-  const handleRename = async (newTitle: string) => {
-    if (!user || !artifact) return;
+  const handleStartEdit = () => {
+    if (artifact?.spec) {
+      setEditableSpec(artifact.spec);
+      setIsEditingSpec(true);
+    }
+  };
 
+  const handleSaveEdit = async () => {
+    if (!artifact || !user) return;
+
+    setIsSaving(true);
     try {
-      await apiClient.artifacts.update(artifact.id, user.id, { title: newTitle });
-      // Reload artifact to get fresh data
-      await loadArtifact(artifact.id, user.id);
-      // Notify sidebar to refresh
+      await apiClient.artifacts.update(artifact.id, user.id, { spec: editableSpec });
+      await loadArtifact(artifactId, user.id);
+      setIsEditingSpec(false);
       notifyArtifactChanged();
     } catch (error) {
-      console.error('Error renaming artifact:', error);
-      throw error;
+      console.error('Error saving spec:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!input.trim() || !artifact || !user || isLoading) return;
+
+    const userMessage = input.trim();
+    setInput('');
+    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(`${API_URL}/api/v1/artifacts/spec/stream?user_id=${user.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: userMessage,
+          conversation_history: messages.map(m => ({ role: m.role, content: m.content })),
+          current_spec: artifact.spec,
+        }),
+      });
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.slice(6));
+                if (data.type === 'spec') {
+                  // Update artifact spec
+                  await apiClient.artifacts.update(artifact.id, user.id, {
+                    spec: data.content.spec,
+                    title: data.content.title,
+                    description: data.content.description,
+                  });
+                  await loadArtifact(artifactId, user.id);
+                } else if (data.type === 'message') {
+                  setMessages(prev => [...prev, { role: 'assistant', content: data.content }]);
+                }
+              } catch {}
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGenerateUI = async () => {
+    if (!artifact || !user) return;
+
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/api/v1/artifacts/generate-ui?user_id=${user.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          spec: artifact.spec,
+          title: artifact.title,
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        await apiClient.artifacts.update(artifact.id, user.id, {
+          content: result,
+          phase: 'ui' as any,
+        });
+        await loadArtifact(artifactId, user.id);
+        setViewMode('ui');
+      }
+    } catch (error) {
+      console.error('Error generating UI:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleDelete = async () => {
     if (!user || !artifact) return;
+    await apiClient.artifacts.delete(artifact.id, user.id);
+    notifyArtifactChanged();
+    router.push('/artifacts');
+  };
 
-    try {
-      await apiClient.artifacts.delete(artifact.id, user.id);
-      // Notify sidebar to refresh
-      notifyArtifactChanged();
-      // Navigate back to artifacts list
-      router.push('/artifacts');
-    } catch (error) {
-      console.error('Error deleting artifact:', error);
-      throw error;
-    }
+  const handleRename = async (newTitle: string) => {
+    if (!user || !artifact) return;
+    await apiClient.artifacts.update(artifact.id, user.id, { title: newTitle });
+    await loadArtifact(artifactId, user.id);
+    notifyArtifactChanged();
   };
 
   if (loading) {
@@ -106,12 +225,7 @@ export default function ArtifactViewPage() {
   if (error || !artifact) {
     return (
       <div className="text-center py-12">
-        <h2 className="heading-2 mb-3 text-foreground">
-          {error ? 'Error Loading Artifact' : 'Artifact not found'}
-        </h2>
-        {error && (
-          <p className="body text-foreground/60 mb-4">{error}</p>
-        )}
+        <h2 className="heading-2 mb-3">{error || 'Artifact not found'}</h2>
         <Button onClick={() => router.push('/artifacts')} className="gap-2">
           <ArrowLeft className="w-4 h-4" />
           Back to Artifacts
@@ -120,60 +234,191 @@ export default function ArtifactViewPage() {
     );
   }
 
+  const hasUI = artifact.content?.components?.length > 0;
+
   return (
-    <div className="flex h-full">
-      {/* Main Content */}
-      <div className={`flex-1 ${showEditSidebar ? 'mr-[500px] transition-all duration-300' : ''}`}>
-        {/* Header with Back Button and Actions */}
-        <div className="flex items-center justify-between mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => router.push('/artifacts')}
-            className="gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Artifacts
+    <div className="h-screen flex flex-col bg-background -m-4">
+      {/* Header */}
+      <header className="flex items-center justify-between h-12 px-4 border-b">
+        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+          <Link href="/artifacts" className="hover:text-foreground transition-colors flex items-center gap-1">
+            <FolderOpen className="h-3.5 w-3.5" />
+            <span>Artifacts</span>
+          </Link>
+          <ChevronRight className="h-3.5 w-3.5" />
+          <span className="text-foreground font-medium flex items-center gap-1">
+            <Sparkles className="h-3.5 w-3.5" />
+            {artifact.title}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          {/* View toggle */}
+          {hasUI && (
+            <div className="flex border rounded-md overflow-hidden text-xs">
+              <button
+                onClick={() => setViewMode('spec')}
+                className={`px-3 py-1 flex items-center gap-1 ${viewMode === 'spec' ? 'bg-accent' : 'hover:bg-accent/50'}`}
+              >
+                <FileText className="h-3 w-3" />
+                Spec
+              </button>
+              <button
+                onClick={() => setViewMode('ui')}
+                className={`px-3 py-1 flex items-center gap-1 ${viewMode === 'ui' ? 'bg-accent' : 'hover:bg-accent/50'}`}
+              >
+                <LayoutDashboard className="h-3 w-3" />
+                UI
+              </button>
+            </div>
+          )}
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setChatOpen(!chatOpen)}>
+            {chatOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRight className="h-4 w-4" />}
           </Button>
+          <ArtifactActions
+            artifactId={artifact.id}
+            artifactTitle={artifact.title}
+            onRename={handleRename}
+            onDelete={handleDelete}
+          />
+        </div>
+      </header>
 
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              onClick={() => setShowEditSidebar(!showEditSidebar)}
-              className="gap-2"
-            >
-              Edit
-              <PanelRight className="w-4 h-4" />
-            </Button>
+      {/* Main content */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left: Spec or UI */}
+        <div className={`flex-1 overflow-auto p-6 ${chatOpen ? 'border-r' : ''} bg-accent/5`}>
+          <div className="max-w-4xl mx-auto">
+            {viewMode === 'spec' ? (
+              <>
+                {/* Spec view */}
+                {artifact.spec ? (
+                  <div className="bg-background rounded-xl border shadow-sm relative group">
+                    {!isEditingSpec && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity h-7 px-2 text-xs"
+                        onClick={handleStartEdit}
+                      >
+                        <Pencil className="h-3 w-3 mr-1" />
+                        Edit
+                      </Button>
+                    )}
+                    {isEditingSpec ? (
+                      <div className="p-4">
+                        <textarea
+                          value={editableSpec}
+                          onChange={(e) => setEditableSpec(e.target.value)}
+                          className="w-full min-h-[400px] font-mono text-sm bg-transparent border-0 resize-none focus:outline-none"
+                          autoFocus
+                        />
+                        <div className="flex justify-end gap-2 mt-3 pt-3 border-t">
+                          <Button variant="ghost" size="sm" onClick={() => setIsEditingSpec(false)}>Cancel</Button>
+                          <Button size="sm" onClick={handleSaveEdit} disabled={isSaving}>
+                            {isSaving ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Check className="h-3 w-3 mr-1" />}
+                            Save
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-6 prose prose-sm dark:prose-invert max-w-none
+                        [&>h1]:text-xl [&>h1]:font-semibold [&>h1]:mb-4 [&>h1]:pb-2 [&>h1]:border-b
+                        [&>h2]:text-base [&>h2]:font-semibold [&>h2]:mt-6 [&>h2]:mb-3
+                        [&>p]:text-sm [&>p]:text-muted-foreground [&>p]:leading-relaxed [&>p]:mb-3
+                        [&>ul]:my-2 [&>ul]:pl-5 [&>ul]:list-disc
+                        [&>ul>li]:text-sm [&>ul>li]:text-muted-foreground [&>ul>li]:my-1
+                        [&_strong]:text-foreground [&_strong]:font-medium">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{artifact.spec}</ReactMarkdown>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <p>No Product Spec defined yet.</p>
+                  </div>
+                )}
 
-            <ArtifactActions
-              artifactId={artifact.id}
-              artifactTitle={artifact.title}
-              onRename={handleRename}
-              onDelete={handleDelete}
-            />
+                {/* Generate UI button */}
+                {artifact.spec && !hasUI && !isEditingSpec && (
+                  <div className="mt-6 flex justify-center">
+                    <Button onClick={handleGenerateUI} disabled={isLoading} className="gap-2">
+                      {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+                      Build from Spec
+                    </Button>
+                  </div>
+                )}
+              </>
+            ) : (
+              /* UI view */
+              <ArtifactRenderer artifact={artifact} onDataUpdate={async () => {}} />
+            )}
           </div>
         </div>
 
-        {/* Artifact Renderer */}
-        <ArtifactRenderer
-          artifact={artifact}
-          onDataUpdate={handleDataUpdate}
-        />
-      </div>
+        {/* Right: Chat */}
+        {chatOpen && (
+          <div className="w-[360px] flex flex-col bg-background">
+            <div className="px-4 py-3 border-b">
+              <h3 className="font-medium text-sm">Chat</h3>
+              <p className="text-xs text-muted-foreground">Refine your artifact</p>
+            </div>
 
-      {/* Edit Sidebar - Fixed Position */}
-      {user && showEditSidebar && (
-        <div className="fixed right-0 top-0 h-full w-[500px] border-l bg-background z-50">
-          <EditArtifactSidebar
-            open={showEditSidebar}
-            onOpenChange={setShowEditSidebar}
-            artifact={artifact}
-            userId={user.id}
-            onArtifactUpdated={() => loadArtifact(artifactId, user.id)}
-          />
-        </div>
-      )}
+            <div className="flex-1 overflow-auto p-4 space-y-4">
+              {messages.length === 0 ? (
+                <div className="text-center text-muted-foreground text-sm py-8">
+                  <p>Ask me to refine the spec</p>
+                </div>
+              ) : (
+                messages.map((msg, i) => (
+                  <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[85%] px-3 py-2 rounded-xl text-sm ${
+                      msg.role === 'user'
+                        ? 'bg-action text-action-foreground'
+                        : 'bg-accent/50'
+                    }`}>
+                      {msg.content}
+                    </div>
+                  </div>
+                ))
+              )}
+              {isLoading && (
+                <div className="flex justify-start">
+                  <div className="bg-accent/50 px-3 py-2 rounded-xl">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            <div className="p-4 border-t">
+              <div className="relative">
+                <Textarea
+                  ref={textareaRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  placeholder="Refine the spec..."
+                  className="min-h-[60px] pr-10 resize-none text-sm"
+                />
+                <Button
+                  size="icon"
+                  className="absolute bottom-2 right-2 h-7 w-7 rounded-full"
+                  onClick={handleSendMessage}
+                  disabled={!input.trim() || isLoading}
+                >
+                  <ArrowUp className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
-

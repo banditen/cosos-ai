@@ -45,7 +45,7 @@ export default function ArtifactsPage() {
   };
 
   const handleCreateNew = () => {
-    router.push('/onboarding');
+    router.push('/artifacts/new');
   };
 
   const handleViewArtifact = (artifactId: string) => {

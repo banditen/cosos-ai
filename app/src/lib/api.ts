@@ -157,7 +157,13 @@ export const apiClient = {
       const response = await api.put(`/api/v1/artifacts/${artifactId}/data`, { data });
       return response.data;
     },
-    update: async (artifactId: string, userId: string, updates: { title?: string; description?: string }) => {
+    update: async (artifactId: string, userId: string, updates: {
+      title?: string;
+      description?: string;
+      spec?: string;
+      content?: any;
+      phase?: 'spec' | 'ui';
+    }) => {
       const response = await api.put(`/api/v1/artifacts/${artifactId}?user_id=${userId}`, updates);
       return response.data;
     },

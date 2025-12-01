@@ -36,6 +36,8 @@ export default function Home() {
           router.push('/setup');
           return;
         }
+        // For other errors, just continue - don't block the user
+        console.warn('Failed to get user context:', error);
       }
 
       setUser(user);
@@ -49,38 +51,16 @@ export default function Home() {
     try {
       setError(null);
       const data = await apiClient.artifacts.list(userId);
-      console.log('🏠 Home - API response:', data);
-      console.log('🏠 Home - Total artifacts:', data.artifacts?.length || 0);
 
-      // Filter to only show "activated" artifacts
-      // An artifact is activated if:
-      // 1. It has no integration requirements (can be used immediately), OR
-      // 2. All required integrations are connected
-      const activatedArtifacts = (data.artifacts || []).filter((artifact: Artifact) => {
-        const requiredIntegrations = artifact.metadata?.integrations_required || [];
-        const connectedIntegrations = artifact.integrations_connected || [];
-
-        console.log(`🏠 Checking ${artifact.title}:`, {
-          requiredIntegrations,
-          connectedIntegrations,
-          activated: requiredIntegrations.length === 0 || requiredIntegrations.every((required: string) =>
-            connectedIntegrations.includes(required)
-          )
-        });
-
-        // If no integrations required, it's activated
-        if (requiredIntegrations.length === 0) {
-          return true;
-        }
-
-        // If integrations required, check if all are connected
-        return requiredIntegrations.every((required: string) =>
-          connectedIntegrations.includes(required)
-        );
+      // Only show LIVE artifacts on the home page
+      // Artifacts become "live" when the user marks them as live after:
+      // 1. The spec is complete
+      // 2. Required integrations are connected (if any)
+      const liveArtifacts = (data.artifacts || []).filter((artifact: Artifact) => {
+        return artifact.status === 'live';
       });
 
-      console.log('🏠 Home - Activated artifacts:', activatedArtifacts.length);
-      setArtifacts(activatedArtifacts);
+      setArtifacts(liveArtifacts);
     } catch (error) {
       console.error('Error loading artifacts:', error);
       setError('Failed to load artifacts. Please try refreshing the page.');
@@ -164,7 +144,7 @@ export default function Home() {
           </p>
         </div>
         <Button
-          onClick={() => router.push('/onboarding')}
+          onClick={() => router.push('/artifacts/new')}
           className="gap-2"
         >
           <Plus className="w-4 h-4" />
@@ -210,14 +190,14 @@ export default function Home() {
         </div>
       ) : (
         <div className="mt-8 card text-center py-8">
-          <h2 className="heading-3 mb-2 text-foreground">No Activated Artifacts</h2>
+          <h2 className="heading-3 mb-2 text-foreground">No Live Artifacts</h2>
           <p className="body text-foreground/60 mb-4">
-            Activate an artifact by connecting integrations to see it here
+            Create an artifact and set it live to see it here
           </p>
           <Button
-            onClick={() => router.push('/artifacts')}
+            onClick={() => router.push('/artifacts/new')}
           >
-            View All Artifacts
+            Create Artifact
           </Button>
         </div>
       )}

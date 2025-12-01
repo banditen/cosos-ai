@@ -1,8 +1,10 @@
 """Routes for artifact generation and management."""
 
 import logging
+import json
 from fastapi import APIRouter, HTTPException, Query, Body
-from typing import Optional, List, Dict, Any
+from fastapi.responses import StreamingResponse
+from typing import Optional, List, Dict, Any, AsyncGenerator
 
 from models.artifact import (
     ArtifactCreate,
@@ -18,39 +20,188 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/artifacts", tags=["artifacts"])
 
 
+@router.post("/draft", response_model=Dict[str, Any])
+async def create_artifact_draft(
+    user_id: str = Query(..., description="User ID"),
+    request_data: Dict[str, Any] = Body(..., description="Draft request data")
+) -> Dict[str, Any]:
+    """
+    Create an artifact draft with clarifying questions.
+
+    This is the conversational approach (like Den):
+    1. User provides initial prompt
+    2. AI creates a draft artifact AND asks clarifying questions
+    3. User can refine through conversation
+    4. When satisfied, user saves the final artifact
+
+    Args:
+        user_id: User ID
+        request_data: Contains prompt, conversation_history (optional), and draft (optional)
+
+    Returns:
+        Dict with draft artifact, assistant message, and suggested questions
+    """
+    try:
+        service = ArtifactService()
+
+        prompt = request_data.get("prompt")
+        if not prompt:
+            raise HTTPException(status_code=400, detail="prompt is required")
+
+        conversation_history = request_data.get("conversation_history", [])
+        current_draft = request_data.get("draft")
+        context = request_data.get("context")
+
+        result = await service.create_artifact_draft(
+            user_id=user_id,
+            prompt=prompt,
+            conversation_history=conversation_history,
+            current_draft=current_draft,
+            context=context
+        )
+
+        logger.info(f"Draft created for user {user_id}")
+
+        return result
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error creating draft: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/spec/stream")
+async def create_spec_stream(
+    user_id: str = Query(..., description="User ID"),
+    request_data: Dict[str, Any] = Body(..., description="Spec request data")
+) -> StreamingResponse:
+    """
+    Create a Product Spec with streaming response (Phase 1).
+
+    The Product Spec is a markdown document that defines what the artifact
+    should do. UI components are generated from this spec in Phase 2.
+
+    Streams SSE events:
+    - thinking: Shows what the AI is considering
+    - building: Shows progress on building the spec
+    - spec: The Product Spec document {spec, title, description}
+    - message: Assistant message
+    - done: Stream complete
+    - error: Error occurred
+    """
+    async def generate() -> AsyncGenerator[str, None]:
+        try:
+            service = ArtifactService()
+
+            prompt = request_data.get("prompt")
+            if not prompt:
+                yield f"data: {json.dumps({'type': 'error', 'content': 'prompt is required'})}\n\n"
+                return
+
+            conversation_history = request_data.get("conversation_history", [])
+            current_spec = request_data.get("spec")
+            context = request_data.get("context")
+
+            # Stream the spec creation process
+            async for event in service.create_spec_stream(
+                user_id=user_id,
+                prompt=prompt,
+                conversation_history=conversation_history,
+                current_spec=current_spec,
+                context=context
+            ):
+                yield f"data: {json.dumps(event)}\n\n"
+
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
+
+        except Exception as e:
+            logger.error(f"Error in streaming spec: {e}")
+            yield f"data: {json.dumps({'type': 'error', 'content': str(e)})}\n\n"
+
+    return StreamingResponse(
+        generate(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
+
+
+@router.post("/generate-ui", response_model=Dict[str, Any])
+async def generate_ui_from_spec(
+    user_id: str = Query(..., description="User ID"),
+    request_data: Dict[str, Any] = Body(..., description="Spec and context")
+) -> Dict[str, Any]:
+    """
+    Generate UI components from a Product Spec (Phase 2).
+
+    Takes a Product Spec document and generates visual components.
+
+    Args:
+        user_id: User ID
+        request_data: Contains spec (markdown), title, and optional context
+
+    Returns:
+        Dict with components array and data
+    """
+    try:
+        service = ArtifactService()
+
+        spec = request_data.get("spec")
+        if not spec:
+            raise HTTPException(status_code=400, detail="spec is required")
+
+        title = request_data.get("title", "Untitled")
+        context = request_data.get("context")
+
+        result = await service.generate_ui_from_spec(
+            spec=spec,
+            title=title,
+            context=context
+        )
+
+        logger.info(f"UI generated from spec for user {user_id}")
+
+        return result
+
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Error generating UI from spec: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/generate", response_model=ArtifactResponse)
 async def generate_artifact(
     user_id: str = Query(..., description="User ID"),
     artifact_data: ArtifactCreate = Body(..., description="Artifact creation data")
 ) -> ArtifactResponse:
     """
-    Generate an artifact from a user prompt.
-    
-    This is the core endpoint for the new prompt-driven approach:
-    1. User provides a natural language prompt
-    2. AI classifies the prompt to determine artifact type
-    3. AI generates structured artifact content
-    4. Artifact is saved to database
-    5. Prompt is logged for analytics
-    
+    Generate an artifact from a user prompt (legacy one-shot approach).
+
+    For the new conversational approach, use POST /artifacts/draft instead.
+
     Args:
         user_id: User ID
         artifact_data: Contains prompt and optional context
-        
+
     Returns:
         Generated artifact
     """
     try:
         service = ArtifactService()
         artifact = await service.generate_artifact(user_id, artifact_data)
-        
+
         logger.info(f"Artifact generated for user {user_id}: {artifact.title}")
-        
+
         return ArtifactResponse(
             artifact=artifact,
             message="Artifact generated successfully"
         )
-        
+
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:

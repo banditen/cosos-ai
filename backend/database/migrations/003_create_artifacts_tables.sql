@@ -6,27 +6,30 @@
 CREATE TABLE IF NOT EXISTS artifacts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    
+
     -- Artifact metadata
     type VARCHAR(50) NOT NULL, -- 'mrr_tracker', 'retention_analysis', 'board_prep', etc.
     title VARCHAR(255) NOT NULL,
     description TEXT,
-    
+
     -- User input
     prompt TEXT NOT NULL, -- The original user prompt
     context JSONB, -- User context from onboarding (stage, goal, challenge)
-    
+
     -- Generated content
     content JSONB NOT NULL, -- The structured artifact data
     metadata JSONB, -- Additional metadata (integrations_required, etc.)
-    
+
+    -- Conversation history for artifact refinement
+    conversation_history JSONB, -- Array of {role, content} messages
+
     -- Status
     status VARCHAR(20) DEFAULT 'active', -- 'active', 'archived', 'deleted'
-    
+
     -- Integration status
     integrations_connected TEXT[], -- Array of connected integration names
     last_synced_at TIMESTAMP,
-    
+
     -- Timestamps
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()

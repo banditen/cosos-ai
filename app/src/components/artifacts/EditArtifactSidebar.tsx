@@ -29,15 +29,26 @@ export default function EditArtifactSidebar({
   userId,
   onArtifactUpdated,
 }: EditArtifactSidebarProps) {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: 'assistant',
-      content: `I'm here to help you improve "${artifact.title}". What would you like to change or add?`,
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Load stored conversation history or show default message
+  useEffect(() => {
+    if (artifact.conversation_history && artifact.conversation_history.length > 0) {
+      // Load existing conversation
+      setMessages(artifact.conversation_history as Message[]);
+    } else {
+      // Show default welcome message
+      setMessages([
+        {
+          role: 'assistant',
+          content: `I'm here to help you improve "${artifact.title}". What would you like to change or add?`,
+        },
+      ]);
+    }
+  }, [artifact]);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {

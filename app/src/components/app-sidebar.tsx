@@ -8,6 +8,8 @@ import {
   SettingsIcon,
   HelpCircleIcon,
   FileIcon,
+  PanelLeftClose,
+  PanelLeft,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -21,10 +23,12 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import { supabase } from "@/lib/supabase"
 import apiClient from "@/lib/api"
 import type { Artifact } from "@/types/artifact"
+import { Button } from "@/components/ui/button"
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   user?: {
@@ -95,26 +99,42 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
     },
   ]
 
+  const { toggleSidebar, open } = useSidebar()
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
-            >
-              <a href="/home">
-                <Image
-                  src="/logo.png"
-                  alt="Cosos"
-                  width={100}
-                  height={32}
-                  className="object-contain"
-                  priority
-                />
-              </a>
-            </SidebarMenuButton>
+            <div className="flex items-center justify-between w-full">
+              <SidebarMenuButton
+                asChild
+                className="data-[slot=sidebar-menu-button]:!p-1.5 flex-1"
+              >
+                <a href="/home">
+                  <Image
+                    src="/logo.png"
+                    alt="Cosos"
+                    width={100}
+                    height={32}
+                    className="object-contain"
+                    priority
+                  />
+                </a>
+              </SidebarMenuButton>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleSidebar}
+                className="h-7 w-7 shrink-0"
+              >
+                {open ? (
+                  <PanelLeftClose className="h-4 w-4" />
+                ) : (
+                  <PanelLeft className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>

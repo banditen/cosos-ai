@@ -7,6 +7,7 @@ import DataList from './DataList';
 import ProgressBarComponent from './ProgressBarComponent';
 import InputForm from './InputForm';
 import TextBlock from './TextBlock';
+import Chart from './Chart';
 
 interface ArtifactRendererProps {
   artifact: Artifact;
@@ -48,15 +49,24 @@ export default function ArtifactRenderer({ artifact, onDataUpdate, showHeader = 
   };
 
   const renderComponent = (component: ArtifactComponent) => {
+    // Guard against undefined config
+    if (!component.config) {
+      return (
+        <div className="p-4 border border-muted rounded-lg text-sm text-muted-foreground">
+          Component configuration missing
+        </div>
+      );
+    }
+
     switch (component.type) {
       case 'MetricCard':
         return <MetricCard config={component.config as any} />;
-      
+
       case 'DataList':
         // Inject actual data from artifactData
         const dataListConfig = component.config as any;
-        const dataKey = dataListConfig.dataKey || `${component.id}_items`;
-        const items = artifactData[dataKey] || dataListConfig.items || [];
+        const dataKey = dataListConfig?.dataKey || `${component.id}_items`;
+        const items = artifactData[dataKey] || dataListConfig?.items || [];
         
         return (
           <DataList 
@@ -80,7 +90,10 @@ export default function ArtifactRenderer({ artifact, onDataUpdate, showHeader = 
       
       case 'TextBlock':
         return <TextBlock config={component.config as any} />;
-      
+
+      case 'Chart':
+        return <Chart config={component.config as any} />;
+
       default:
         return (
           <div className="p-4 border border-destructive rounded-lg text-sm text-destructive">
