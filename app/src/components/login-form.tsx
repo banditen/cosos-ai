@@ -1,7 +1,11 @@
 'use client'
 
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Card,
   CardContent,
@@ -9,23 +13,58 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { signInWithGoogle } from "@/lib/supabase"
+import { signInWithGoogle, signInWithEmail, signUpWithEmail } from "@/lib/supabase"
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
+  const router = useRouter()
+  const [isSignUp, setIsSignUp] = useState(false)
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState<string | null>(null)
+
   const handleGoogleLogin = async () => {
     await signInWithGoogle()
+  }
+
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError(null)
+    setMessage(null)
+    setLoading(true)
+
+    try {
+      if (isSignUp) {
+        const { error } = await signUpWithEmail(email, password)
+        if (error) throw error
+        setMessage("Check your email for the confirmation link")
+      } else {
+        const { error } = await signInWithEmail(email, password)
+        if (error) throw error
+        router.push("/home")
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An error occurred")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader className="text-center">
-          <CardTitle className="text-xl">Welcome to Cosos</CardTitle>
+          <CardTitle className="text-xl">
+            {isSignUp ? "Create an account" : "Welcome back"}
+          </CardTitle>
           <CardDescription>
-            Sign in to access your business intelligence
+            {isSignUp
+              ? "Enter your email to create your account"
+              : "Sign in to access your business intelligence"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -43,6 +82,70 @@ export function LoginForm({
               </svg>
               Continue with Google
             </Button>
+            <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
+              <span className="relative z-10 bg-card px-2 text-muted-foreground">
+                or
+              </span>
+            </div>
+            <form onSubmit={handleEmailAuth} className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="name@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
+              </div>
+              {error && (
+                <p className="text-sm text-destructive">{error}</p>
+              )}
+              {message && (
+                <p className="text-sm text-green-600">{message}</p>
+              )}
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? "Loading..." : isSignUp ? "Sign up" : "Sign in"}
+              </Button>
+            </form>
+            <div className="text-center text-sm">
+              {isSignUp ? (
+                <>
+                  Already have an account?{" "}
+                  <button
+                    type="button"
+                    onClick={() => setIsSignUp(false)}
+                    className="underline underline-offset-4 hover:text-primary"
+                  >
+                    Sign in
+                  </button>
+                </>
+              ) : (
+                <>
+                  Don&apos;t have an account?{" "}
+                  <button
+                    type="button"
+                    onClick={() => setIsSignUp(true)}
+                    className="underline underline-offset-4 hover:text-primary"
+                  >
+                    Sign up
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
