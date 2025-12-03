@@ -43,7 +43,7 @@ export default function EditArtifactSidebar({
       // Show default welcome message
       setMessages([
         {
-          role: 'assistant',
+          role: 'assistant' as const,
           content: `I'm here to help you improve "${artifact.title}". What would you like to change or add?`,
         },
       ]);
@@ -65,7 +65,7 @@ export default function EditArtifactSidebar({
     setInput('');
 
     // Add user message
-    const newMessages = [...messages, { role: 'user', content: userMessage }];
+    const newMessages: Message[] = [...messages, { role: 'user' as const, content: userMessage }];
     setMessages(newMessages);
     setIsLoading(true);
 
@@ -90,7 +90,7 @@ export default function EditArtifactSidebar({
       setMessages((prev) => [
         ...prev,
         {
-          role: 'assistant',
+          role: 'assistant' as const,
           content: response.assistant_message,
         },
       ]);
@@ -105,7 +105,7 @@ export default function EditArtifactSidebar({
       setMessages((prev) => [
         ...prev,
         {
-          role: 'assistant',
+          role: 'assistant' as const,
           content: 'Sorry, I encountered an error. Please try again.',
         },
       ]);
