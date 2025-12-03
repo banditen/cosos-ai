@@ -4,7 +4,9 @@ import * as React from "react"
 import Image from "next/image"
 import {
   LayoutDashboardIcon,
-  BoxIcon,
+  BookOpenIcon,
+  PlugIcon,
+  BotIcon,
   SettingsIcon,
   HelpCircleIcon,
   FileIcon,
@@ -26,9 +28,12 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { supabase } from "@/lib/supabase"
-import apiClient from "@/lib/api"
-import type { Artifact } from "@/types/artifact"
 import { Button } from "@/components/ui/button"
+
+interface Agent {
+  id: string
+  name: string
+}
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   user?: {
@@ -39,34 +44,36 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 }
 
 export function AppSidebar({ user, ...props }: AppSidebarProps) {
-  const [artifacts, setArtifacts] = React.useState<Artifact[]>([])
+  const [agents, setAgents] = React.useState<Agent[]>([])
 
-  const loadArtifacts = React.useCallback(async () => {
+  const loadAgents = React.useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
     try {
-      const data = await apiClient.artifacts.list(user.id)
-      setArtifacts(data.artifacts || [])
+      // TODO: Replace with actual agents API when implemented
+      // const data = await apiClient.agents.list(user.id)
+      // setAgents(data.agents || [])
+      setAgents([])
     } catch (error) {
-      console.error('Error loading artifacts for sidebar:', error)
+      console.error('Error loading agents for sidebar:', error)
     }
   }, [])
 
   React.useEffect(() => {
-    loadArtifacts()
+    loadAgents()
 
-    // Listen for artifact changes
-    const handleArtifactChange = () => {
-      loadArtifacts()
+    // Listen for agent changes
+    const handleAgentChange = () => {
+      loadAgents()
     }
 
-    window.addEventListener('artifactChanged', handleArtifactChange)
+    window.addEventListener('agentChanged', handleAgentChange)
 
     return () => {
-      window.removeEventListener('artifactChanged', handleArtifactChange)
+      window.removeEventListener('agentChanged', handleAgentChange)
     }
-  }, [loadArtifacts])
+  }, [loadAgents])
 
   const navMain = [
     {
@@ -75,12 +82,22 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
       icon: LayoutDashboardIcon,
     },
     {
-      title: "Artifacts",
-      url: "/artifacts",
-      icon: BoxIcon,
-      items: artifacts.map(artifact => ({
-        title: artifact.title,
-        url: `/artifacts/${artifact.id}`,
+      title: "Knowledge",
+      url: "/knowledge",
+      icon: BookOpenIcon,
+    },
+    {
+      title: "Integrations",
+      url: "/integrations",
+      icon: PlugIcon,
+    },
+    {
+      title: "Agents",
+      url: "/agents",
+      icon: BotIcon,
+      items: agents.map(agent => ({
+        title: agent.name,
+        url: `/agents/${agent.id}`,
         icon: FileIcon,
       })),
     },

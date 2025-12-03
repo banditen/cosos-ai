@@ -56,6 +56,29 @@ class Settings(BaseSettings):
     LINEAR_REDIRECT_URI: str = "http://localhost:8000/api/v1/linear/oauth/callback"
     LINEAR_SCOPES: list = ["read", "write"]  # Linear OAuth scopes
 
+    # Slack Integration
+    SLACK_CLIENT_ID: str = ""
+    SLACK_CLIENT_SECRET: str = ""
+    SLACK_REDIRECT_URI: str = "http://localhost:8000/api/v1/slack/oauth/callback"
+    SLACK_SCOPES: list = [
+        "channels:history",
+        "channels:read",
+        "groups:history",
+        "groups:read",
+        "im:history",
+        "im:read",
+        "mpim:history",
+        "mpim:read",
+        "users:read",
+        "users:read.email",
+        "team:read"
+    ]
+
+    # Notion Integration
+    NOTION_CLIENT_ID: str = ""
+    NOTION_CLIENT_SECRET: str = ""
+    NOTION_REDIRECT_URI: str = "http://localhost:8000/api/v1/notion/oauth/callback"
+
     # Security
     SECRET_KEY: str = "dev-key-change-in-production"
     ALGORITHM: str = "HS256"

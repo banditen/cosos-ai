@@ -31,6 +31,9 @@ from routes.linear import router as linear_router
 from routes.analysis import router as analysis_router
 from routes.setup import router as setup_router
 from routes.artifacts import router as artifacts_router
+from routes.slack import router as slack_router
+from routes.notion import router as notion_router
+from routes.context import router as context_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -106,6 +109,9 @@ app.include_router(linear_router, prefix="/api/v1")
 app.include_router(analysis_router, prefix="/api/v1")
 app.include_router(setup_router, prefix="/api/v1")
 app.include_router(artifacts_router, prefix="/api/v1")  # NEW: Artifact generation
+app.include_router(slack_router, prefix="/api/v1")  # Slack integration
+app.include_router(notion_router, prefix="/api/v1")  # Notion integration
+app.include_router(context_router, prefix="/api/v1")  # Context Q&A
 
 if __name__ == "__main__":
     import uvicorn
