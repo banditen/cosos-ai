@@ -13,7 +13,7 @@ interface ResultScreenProps {
 export default function ResultScreen({ artifact, onGoToDashboard }: ResultScreenProps) {
   const [artifactData, setArtifactData] = useState(artifact);
 
-  const handleDataUpdate = async (updatedData: Record<string, any>) => {
+  const handleDataUpdate = (artifactId: string, updatedData: Record<string, any>) => {
     // Update local state
     setArtifactData({
       ...artifactData,
