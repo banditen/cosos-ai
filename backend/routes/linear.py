@@ -72,18 +72,17 @@ async def linear_oauth_callback(
         
         logger.info(f"Linear OAuth successful for user {user_id}")
 
-        # Redirect to frontend success page
-        frontend_url = "http://localhost:3001"
+        # Redirect to frontend
+        frontend_url = "http://localhost:3000"
         return RedirectResponse(
-            url=f"{frontend_url}/dashboard?oauth_success=true&provider=linear&integration_id={integration['id']}"
+            url=f"{frontend_url}/setup?oauth_success=true&provider=linear&integration_id={integration['id']}"
         )
 
     except Exception as e:
         logger.error(f"Linear OAuth callback error: {e}")
-        # Redirect to frontend error page
-        frontend_url = "http://localhost:3001"
+        frontend_url = "http://localhost:3000"
         return RedirectResponse(
-            url=f"{frontend_url}/dashboard?oauth_error={str(e)}&provider=linear"
+            url=f"{frontend_url}/setup?oauth_error={str(e)}&provider=linear"
         )
 
 

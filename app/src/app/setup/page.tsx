@@ -1,38 +1,51 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import apiClient from '@/lib/api';
 import Loading from '@/components/Loading';
-import SetupProgress from '@/components/setup/SetupProgress';
-import WelcomeStep from '@/components/setup/steps/WelcomeStep';
-import ContextStep from '@/components/setup/steps/ContextStep';
-import ProjectsStep from '@/components/setup/steps/ProjectsStep';
-import MetricsStep from '@/components/setup/steps/MetricsStep';
-import ReviewStep from '@/components/setup/steps/ReviewStep';
+import SetupWelcome from '@/components/setup/steps/SetupWelcome';
+import SetupIntegrations from '@/components/setup/steps/SetupIntegrations';
+import SetupContext from '@/components/setup/steps/SetupContext';
+import SetupAnalysis from '@/components/setup/steps/SetupAnalysis';
+
+type SetupStep = 'welcome' | 'integrations' | 'context' | 'analysis';
+
+interface SetupData {
+  role: string;
+  priority: string;
+  companyName: string;
+  connectedIntegrations: string[];
+}
 
 export default function Setup() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [currentStep, setCurrentStep] = useState(1);
-  const [setupData, setSetupData] = useState({
-    businessDescription: '',
-    successDefinition: '',
-    biggestChallenge: '',
-    projects: [] as any[],
-    metrics: [] as any[],
+  const [step, setStep] = useState<SetupStep>('welcome');
+  const [setupData, setSetupData] = useState<SetupData>({
+    role: '',
+    priority: '',
+    companyName: '',
+    connectedIntegrations: [],
   });
 
-  const totalSteps = 5;
-  const stepLabels = [
-    'Welcome',
-    'Business Context',
-    'Key Projects',
-    'Success Metrics',
-    'Review & Launch',
-  ];
+  // Check for OAuth callback success
+  useEffect(() => {
+    const oauthSuccess = searchParams.get('oauth_success');
+    const provider = searchParams.get('provider');
+
+    if (oauthSuccess === 'true' && provider) {
+      // Update connected integrations
+      setSetupData(prev => ({
+        ...prev,
+        connectedIntegrations: [...new Set([...prev.connectedIntegrations, provider])]
+      }));
+      // Return to integrations step
+      setStep('integrations');
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -42,25 +55,63 @@ export default function Setup() {
         return;
       }
       setUser(user);
+
+      // Load existing integrations
+      await loadIntegrations(user.id);
       setLoading(false);
     };
     checkAuth();
   }, [router]);
 
-  const handleNext = () => {
-    if (currentStep < totalSteps) {
-      setCurrentStep(currentStep + 1);
+  const loadIntegrations = async (userId: string) => {
+    try {
+      const { data } = await supabase
+        .from('integrations')
+        .select('provider')
+        .eq('user_id', userId)
+        .eq('is_active', true);
+
+      if (data && data.length > 0) {
+        setSetupData(prev => ({
+          ...prev,
+          connectedIntegrations: data.map(i => i.provider)
+        }));
+      }
+    } catch (error) {
+      console.error('Error loading integrations:', error);
     }
   };
 
-  const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
+  const handleIntegrationConnect = (provider: string) => {
+    setSetupData(prev => ({
+      ...prev,
+      connectedIntegrations: [...new Set([...prev.connectedIntegrations, provider])]
+    }));
   };
 
-  const updateSetupData = (data: Partial<typeof setupData>) => {
-    setSetupData({ ...setupData, ...data });
+  const handleContextSubmit = async (role: string, priority: string, companyName: string) => {
+    setSetupData(prev => ({ ...prev, role, priority, companyName }));
+
+    // Save to user_context
+    if (user) {
+      try {
+        await supabase.from('user_context').upsert({
+          user_id: user.id,
+          company_stage: role,
+          business_mission: priority,
+          company_industry: companyName,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+      } catch (error) {
+        console.error('Error saving context:', error);
+      }
+    }
+
+    setStep('analysis');
+  };
+
+  const handleComplete = () => {
+    router.push('/home');
   };
 
   if (loading) {
@@ -69,105 +120,40 @@ export default function Setup() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Subtle gradient background */}
       <div className="fixed inset-0 bg-gradient-to-br from-accent-lavender/5 via-transparent to-accent-beige/5 pointer-events-none" />
-      
-      <div className="relative max-w-4xl mx-auto px-6 py-12">
-        {/* Progress indicator */}
-        {currentStep > 1 && (
-          <SetupProgress
-            currentStep={currentStep}
-            totalSteps={totalSteps}
-            stepLabel={stepLabels[currentStep - 1]}
+
+      <div className="relative max-w-2xl mx-auto px-6 py-12">
+        {step === 'welcome' && (
+          <SetupWelcome
+            userName={user?.user_metadata?.full_name?.split(' ')[0] || 'there'}
+            onContinue={() => setStep('integrations')}
           />
         )}
 
-        {/* Step content with fade transition */}
-        <div className="animate-fadeIn">
-          {currentStep === 1 && (
-            <WelcomeStep onContinue={handleNext} />
-          )}
+        {step === 'integrations' && (
+          <SetupIntegrations
+            userId={user?.id}
+            connectedIntegrations={setupData.connectedIntegrations}
+            onConnect={handleIntegrationConnect}
+            onContinue={() => setStep('context')}
+            onBack={() => setStep('welcome')}
+          />
+        )}
 
-          {currentStep === 2 && (
-            <ContextStep
-              data={{
-                businessDescription: setupData.businessDescription,
-                successDefinition: setupData.successDefinition,
-                biggestChallenge: setupData.biggestChallenge,
-              }}
-              onUpdate={(data) => updateSetupData(data)}
-              onContinue={handleNext}
-              onBack={handleBack}
-            />
-          )}
+        {step === 'context' && (
+          <SetupContext
+            onSubmit={handleContextSubmit}
+            onBack={() => setStep('integrations')}
+          />
+        )}
 
-          {currentStep === 3 && (
-            <ProjectsStep
-              projects={setupData.projects}
-              onUpdate={(projects) => updateSetupData({ projects })}
-              onContinue={handleNext}
-              onBack={handleBack}
-            />
-          )}
-
-          {currentStep === 4 && (
-            <MetricsStep
-              metrics={setupData.metrics}
-              onUpdate={(metrics) => updateSetupData({ metrics })}
-              onContinue={handleNext}
-              onBack={handleBack}
-            />
-          )}
-
-          {currentStep === 5 && (
-            <ReviewStep
-              setupData={setupData}
-              onBack={handleBack}
-              onComplete={async () => {
-                if (!user) return;
-
-                try {
-                  // Transform data to match API format
-                  const apiData = {
-                    business_description: setupData.businessDescription,
-                    success_definition: setupData.successDefinition,
-                    biggest_challenge: setupData.biggestChallenge,
-                    projects: setupData.projects.map(p => ({
-                      name: p.name,
-                      description: p.description,
-                      goal: p.goal
-                    })),
-                    metrics: setupData.metrics.map(m => ({
-                      name: m.name,
-                      current_value: m.currentValue,
-                      target_value: m.targetValue,
-                      unit: m.unit,
-                      source: m.source
-                    }))
-                  };
-
-                  await apiClient.setup.complete(user.id, apiData);
-                  router.push('/dashboard');
-                } catch (error) {
-                  console.error('Error completing setup:', error);
-                  alert('Failed to save setup data. Please try again.');
-                }
-              }}
-            />
-          )}
-        </div>
-
-        {/* Back button for steps 2-5 */}
-        {currentStep > 1 && currentStep < 5 && (
-          <button
-            onClick={handleBack}
-            className="mt-8 flex items-center gap-2 body-small text-foreground/60 hover:text-foreground transition-colors duration-200"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back
-          </button>
+        {step === 'analysis' && (
+          <SetupAnalysis
+            userId={user?.id}
+            connectedIntegrations={setupData.connectedIntegrations}
+            priority={setupData.priority}
+            onComplete={handleComplete}
+          />
         )}
       </div>
     </div>

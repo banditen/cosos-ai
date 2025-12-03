@@ -60,11 +60,11 @@ async def notion_oauth_callback(
         await service.handle_oauth_callback(code, state)
 
         frontend_url = "http://localhost:3000"
-        return RedirectResponse(url=f"{frontend_url}/integrations?oauth_success=notion")
+        return RedirectResponse(url=f"{frontend_url}/setup?oauth_success=true&provider=notion")
     except Exception as e:
         logger.error(f"Notion OAuth callback error: {e}")
         frontend_url = "http://localhost:3000"
-        return RedirectResponse(url=f"{frontend_url}/integrations?oauth_error={str(e)}")
+        return RedirectResponse(url=f"{frontend_url}/setup?oauth_error={str(e)}&provider=notion")
 
 
 @router.get("/status", response_model=ConnectionStatus)

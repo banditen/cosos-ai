@@ -62,19 +62,17 @@ async def google_oauth_callback(
         
         logger.info(f"OAuth successful for user {user_id}")
 
-        # Redirect to frontend success page
-        # Use port 3001 for local development (3000 is often taken)
-        frontend_url = "http://localhost:3001"
+        # Redirect to frontend - check for setup flow or regular flow
+        frontend_url = "http://localhost:3000"
         return RedirectResponse(
-            url=f"{frontend_url}/dashboard?oauth_success=true&integration_id={integration['id']}"
+            url=f"{frontend_url}/setup?oauth_success=true&provider=gmail&integration_id={integration['id']}"
         )
 
     except Exception as e:
         logger.error(f"OAuth callback error: {e}")
-        # Redirect to frontend error page
-        frontend_url = "http://localhost:3001"
+        frontend_url = "http://localhost:3000"
         return RedirectResponse(
-            url=f"{frontend_url}/dashboard?oauth_error={str(e)}"
+            url=f"{frontend_url}/setup?oauth_error={str(e)}&provider=gmail"
         )
 
 
