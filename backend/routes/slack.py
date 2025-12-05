@@ -1,12 +1,16 @@
-"""Slack integration routes for OAuth and sync."""
+"""Slack integration routes for OAuth, sync, and events."""
 
 import logging
-from fastapi import APIRouter, HTTPException, Query
+import hashlib
+import hmac
+import time
+from fastapi import APIRouter, HTTPException, Query, Request, Response
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime
 
+from config import settings
 from services.slack_service import SlackService
 
 logger = logging.getLogger(__name__)
@@ -130,3 +134,133 @@ async def disconnect_slack(user_id: str = Query(..., description="User ID")):
         logger.error(f"Error disconnecting Slack: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+def verify_slack_signature(request_body: bytes, timestamp: str, signature: str) -> bool:
+    """Verify that the request came from Slack."""
+    if not settings.SLACK_SIGNING_SECRET:
+        logger.warning("SLACK_SIGNING_SECRET not configured, skipping verification")
+        return True
+
+    # Check timestamp to prevent replay attacks
+    if abs(time.time() - int(timestamp)) > 60 * 5:
+        return False
+
+    sig_basestring = f"v0:{timestamp}:{request_body.decode('utf-8')}"
+    my_signature = 'v0=' + hmac.new(
+        settings.SLACK_SIGNING_SECRET.encode(),
+        sig_basestring.encode(),
+        hashlib.sha256
+    ).hexdigest()
+
+    return hmac.compare_digest(my_signature, signature)
+
+
+@router.post("/events")
+async def slack_events(request: Request):
+    """Handle Slack Events API webhook."""
+    body = await request.body()
+    data = await request.json()
+
+    # Verify signature if signing secret is configured
+    timestamp = request.headers.get("X-Slack-Request-Timestamp", "")
+    signature = request.headers.get("X-Slack-Signature", "")
+
+    if settings.SLACK_SIGNING_SECRET and not verify_slack_signature(body, timestamp, signature):
+        logger.warning("Invalid Slack signature")
+        raise HTTPException(status_code=403, detail="Invalid signature")
+
+    # Handle URL verification challenge (required for setting up Events API)
+    if data.get("type") == "url_verification":
+        return {"challenge": data.get("challenge")}
+
+    # Handle events
+    event = data.get("event", {})
+    event_type = event.get("type")
+
+    logger.info(f"Received Slack event: {event_type}")
+
+    if event_type == "app_mention":
+        # Bot was mentioned in a channel
+        await handle_app_mention(event, data.get("team_id"))
+    elif event_type == "message" and event.get("channel_type") == "im":
+        # Direct message to the bot
+        if not event.get("bot_id"):  # Ignore bot's own messages
+            await handle_direct_message(event, data.get("team_id"))
+
+    return Response(status_code=200)
+
+
+async def handle_app_mention(event: Dict[str, Any], team_id: str):
+    """Handle when Cosos bot is mentioned in a channel."""
+    from database.client import get_supabase_client
+
+    supabase = get_supabase_client()
+    channel_id = event.get("channel")
+    thread_ts = event.get("thread_ts") or event.get("ts")
+    text = event.get("text", "")
+    user_slack_id = event.get("user")
+
+    # Find user by team_id from knowledge_sources
+    source_result = supabase.table("knowledge_sources").select("user_id, metadata").eq(
+        "type", "slack"
+    ).execute()
+
+    user_id = None
+    for source in source_result.data:
+        metadata = source.get("metadata", {})
+        if metadata.get("team_id") == team_id:
+            user_id = source.get("user_id")
+            break
+
+    if not user_id:
+        logger.warning(f"Could not find user for Slack team {team_id}")
+        return
+
+    # TODO: Process the message with Cosos AI and respond
+    # For now, send a simple acknowledgment
+    try:
+        service = SlackService()
+        await service.send_message(
+            user_id=user_id,
+            channel_id=channel_id,
+            text="👋 Hey! I received your message. Full AI responses coming soon!",
+            thread_ts=thread_ts
+        )
+    except Exception as e:
+        logger.error(f"Failed to respond to mention: {e}")
+
+
+async def handle_direct_message(event: Dict[str, Any], team_id: str):
+    """Handle direct message to Cosos bot."""
+    from database.client import get_supabase_client
+
+    supabase = get_supabase_client()
+    channel_id = event.get("channel")
+    text = event.get("text", "")
+
+    # Find user by team_id
+    source_result = supabase.table("knowledge_sources").select("user_id, metadata").eq(
+        "type", "slack"
+    ).execute()
+
+    user_id = None
+    for source in source_result.data:
+        metadata = source.get("metadata", {})
+        if metadata.get("team_id") == team_id:
+            user_id = source.get("user_id")
+            break
+
+    if not user_id:
+        logger.warning(f"Could not find user for Slack team {team_id}")
+        return
+
+    # TODO: Process the message with Cosos AI and respond
+    try:
+        service = SlackService()
+        await service.send_message(
+            user_id=user_id,
+            channel_id=channel_id,
+            text="👋 I got your message! Full conversational AI coming soon."
+        )
+    except Exception as e:
+        logger.error(f"Failed to respond to DM: {e}")

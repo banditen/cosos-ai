@@ -59,7 +59,9 @@ class Settings(BaseSettings):
     # Slack Integration
     SLACK_CLIENT_ID: str = ""
     SLACK_CLIENT_SECRET: str = ""
+    SLACK_SIGNING_SECRET: str = ""  # For verifying Slack events
     SLACK_REDIRECT_URI: str = "http://localhost:8000/api/v1/slack/oauth/callback"
+    # User token scopes (for reading messages)
     SLACK_SCOPES: list = [
         "channels:history",
         "channels:read",
@@ -72,6 +74,15 @@ class Settings(BaseSettings):
         "users:read",
         "users:read.email",
         "team:read"
+    ]
+    # Bot token scopes (for Cosos bot to respond)
+    SLACK_BOT_SCOPES: list = [
+        "app_mentions:read",
+        "chat:write",
+        "im:history",
+        "im:read",
+        "im:write",
+        "users:read",
     ]
 
     # Notion Integration

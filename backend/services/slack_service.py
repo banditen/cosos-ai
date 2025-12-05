@@ -20,20 +20,23 @@ class SlackService:
         self.client_secret = settings.SLACK_CLIENT_SECRET
         self.redirect_uri = settings.SLACK_REDIRECT_URI
         self.scopes = settings.SLACK_SCOPES
+        self.bot_scopes = settings.SLACK_BOT_SCOPES
         self.supabase = get_supabase_client()
 
-    def get_oauth_url(self, user_id: str) -> str:
-        """Generate Slack OAuth authorization URL."""
+    def get_oauth_url(self, user_id: str, include_bot: bool = True) -> str:
+        """Generate Slack OAuth authorization URL with bot scopes."""
         params = {
             "client_id": self.client_id,
-            "scope": ",".join(self.scopes),
             "redirect_uri": self.redirect_uri,
             "state": user_id,
+            "user_scope": ",".join(self.scopes),  # User token scopes
         }
+        if include_bot:
+            params["scope"] = ",".join(self.bot_scopes)  # Bot token scopes
         return f"https://slack.com/oauth/v2/authorize?{urlencode(params)}"
 
     async def handle_oauth_callback(self, code: str, user_id: str) -> Dict[str, Any]:
-        """Exchange authorization code for access token and store integration."""
+        """Exchange authorization code for access tokens and store integration."""
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 "https://slack.com/api/oauth.v2.access",
@@ -51,19 +54,25 @@ class SlackService:
             logger.error(f"Slack OAuth error: {error}")
             raise Exception(f"Slack OAuth failed: {error}")
 
-        access_token = data.get("access_token")
-        team_info = data.get("team", {})
-        authed_user = data.get("authed_user", {})
+        # Bot token (for Cosos bot to respond)
+        bot_access_token = data.get("access_token")
+        bot_user_id = data.get("bot_user_id")
 
-        # Store integration
+        # User token (for reading messages)
+        authed_user = data.get("authed_user", {})
+        user_access_token = authed_user.get("access_token")
+
+        team_info = data.get("team", {})
+
+        # Store user integration (for reading messages)
         integration_data = {
             "user_id": user_id,
             "provider": "slack",
-            "access_token": access_token,
+            "access_token": user_access_token or bot_access_token,
             "refresh_token": None,
-            "token_expires_at": None,  # Slack tokens don't expire
-            "scope": ",".join(self.scopes),
-            "account_email": authed_user.get("id"),  # Slack user ID
+            "token_expires_at": None,
+            "scope": authed_user.get("scope", ",".join(self.scopes)),
+            "account_email": authed_user.get("id"),
             "is_active": True,
         }
 
@@ -71,13 +80,29 @@ class SlackService:
             integration_data, on_conflict="user_id,provider"
         ).execute()
 
-        # Store team metadata in knowledge_sources
-        self._store_slack_workspace(user_id, team_info, access_token)
+        # Store bot integration separately (for responding)
+        if bot_access_token:
+            bot_data = {
+                "user_id": user_id,
+                "provider": "slack_bot",
+                "access_token": bot_access_token,
+                "refresh_token": None,
+                "token_expires_at": None,
+                "scope": data.get("scope", ",".join(self.bot_scopes)),
+                "account_email": bot_user_id,
+                "is_active": True,
+            }
+            self.supabase.table("integrations").upsert(
+                bot_data, on_conflict="user_id,provider"
+            ).execute()
 
-        logger.info(f"Slack OAuth successful for user {user_id}, team {team_info.get('name')}")
+        # Store team metadata in knowledge_sources
+        self._store_slack_workspace(user_id, team_info, bot_access_token or user_access_token, bot_user_id)
+
+        logger.info(f"Slack OAuth successful for user {user_id}, team {team_info.get('name')}, bot installed: {bool(bot_access_token)}")
         return result.data[0]
 
-    def _store_slack_workspace(self, user_id: str, team_info: Dict, access_token: str):
+    def _store_slack_workspace(self, user_id: str, team_info: Dict, access_token: str, bot_user_id: str = None):
         """Store Slack workspace as a knowledge source."""
         source_data = {
             "user_id": user_id,
@@ -85,7 +110,12 @@ class SlackService:
             "type": "slack",
             "external_id": team_info.get("id"),
             "status": "active",
-            "metadata": {"team_name": team_info.get("name"), "team_id": team_info.get("id")},
+            "metadata": {
+                "team_name": team_info.get("name"),
+                "team_id": team_info.get("id"),
+                "bot_user_id": bot_user_id,
+                "bot_installed": bool(bot_user_id),
+            },
         }
         self.supabase.table("knowledge_sources").upsert(
             source_data, on_conflict="user_id,external_id"
@@ -257,9 +287,55 @@ class SlackService:
             "user_id", user_id
         ).eq("provider", "slack").execute()
 
+        # Also disconnect the bot
+        self.supabase.table("integrations").update({"is_active": False}).eq(
+            "user_id", user_id
+        ).eq("provider", "slack_bot").execute()
+
         self.supabase.table("knowledge_sources").update({"status": "disconnected"}).eq(
             "user_id", user_id
         ).eq("type", "slack").execute()
 
         logger.info(f"Disconnected Slack for user {user_id}")
         return True
+
+    def _get_bot_integration(self, user_id: str) -> Optional[Dict]:
+        """Get Slack bot integration for user."""
+        result = (
+            self.supabase.table("integrations")
+            .select("*")
+            .eq("user_id", user_id)
+            .eq("provider", "slack_bot")
+            .eq("is_active", True)
+            .execute()
+        )
+        return result.data[0] if result.data else None
+
+    async def send_message(self, user_id: str, channel_id: str, text: str, thread_ts: str = None) -> Dict[str, Any]:
+        """Send a message as the Cosos bot."""
+        integration = self._get_bot_integration(user_id)
+        if not integration:
+            raise Exception("Slack bot not installed")
+
+        payload = {
+            "channel": channel_id,
+            "text": text,
+        }
+        if thread_ts:
+            payload["thread_ts"] = thread_ts
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                "https://slack.com/api/chat.postMessage",
+                headers={"Authorization": f"Bearer {integration['access_token']}"},
+                json=payload,
+            )
+            data = response.json()
+
+        if not data.get("ok"):
+            error = data.get("error", "Unknown error")
+            logger.error(f"Failed to send Slack message: {error}")
+            raise Exception(f"Failed to send message: {error}")
+
+        logger.info(f"Sent message to channel {channel_id}")
+        return data
