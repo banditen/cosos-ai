@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     API_PORT: int = 8000
     API_TITLE: str = "COSOS API"
     ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:8000"
+    FRONTEND_URL: str = "http://localhost:3000"  # For OAuth redirects
 
     # Database
     DATABASE_URL: str = "postgresql://localhost/cosos"

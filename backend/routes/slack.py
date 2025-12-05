@@ -63,12 +63,10 @@ async def slack_oauth_callback(
         await service.handle_oauth_callback(code, state)
 
         # Redirect to frontend setup page
-        frontend_url = "http://localhost:3000"
-        return RedirectResponse(url=f"{frontend_url}/setup?oauth_success=true&provider=slack")
+        return RedirectResponse(url=f"{settings.FRONTEND_URL}/setup?oauth_success=true&provider=slack")
     except Exception as e:
         logger.error(f"Slack OAuth callback error: {e}")
-        frontend_url = "http://localhost:3000"
-        return RedirectResponse(url=f"{frontend_url}/setup?oauth_error={str(e)}&provider=slack")
+        return RedirectResponse(url=f"{settings.FRONTEND_URL}/setup?oauth_error={str(e)}&provider=slack")
 
 
 @router.get("/status", response_model=ConnectionStatus)

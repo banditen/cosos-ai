@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
+from config import settings
 from services.gmail_service import GmailService
 
 logger = logging.getLogger(__name__)
@@ -62,17 +63,15 @@ async def google_oauth_callback(
         
         logger.info(f"OAuth successful for user {user_id}")
 
-        # Redirect to frontend - check for setup flow or regular flow
-        frontend_url = "http://localhost:3000"
+        # Redirect to frontend
         return RedirectResponse(
-            url=f"{frontend_url}/setup?oauth_success=true&provider=gmail&integration_id={integration['id']}"
+            url=f"{settings.FRONTEND_URL}/setup?oauth_success=true&provider=gmail&integration_id={integration['id']}"
         )
 
     except Exception as e:
         logger.error(f"OAuth callback error: {e}")
-        frontend_url = "http://localhost:3000"
         return RedirectResponse(
-            url=f"{frontend_url}/setup?oauth_error={str(e)}&provider=gmail"
+            url=f"{settings.FRONTEND_URL}/setup?oauth_error={str(e)}&provider=gmail"
         )
 
 
