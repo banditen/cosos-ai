@@ -105,41 +105,79 @@ class ContextQAService:
         context_items = []
 
         # Get recent documents
-        docs = (
-            self.supabase.table("context_documents")
-            .select("id, title, type, content")
-            .eq("user_id", user_id)
-            .eq("is_active", True)
-            .order("updated_at", desc=True)
-            .limit(limit)
-            .execute()
-        )
+        try:
+            docs = (
+                self.supabase.table("context_documents")
+                .select("id, title, type, content")
+                .eq("user_id", user_id)
+                .eq("is_active", True)
+                .order("updated_at", desc=True)
+                .limit(limit)
+                .execute()
+            )
 
-        for doc in docs.data or []:
-            context_items.append({
-                "id": doc["id"],
-                "type": "document",
-                "text": f"{doc['title']}\n\n{doc['content'][:2000]}",
-                "metadata": {"doc_type": doc["type"]},
-            })
+            for doc in docs.data or []:
+                context_items.append({
+                    "id": doc["id"],
+                    "type": "document",
+                    "text": f"{doc['title']}\n\n{doc['content'][:2000]}",
+                    "metadata": {"doc_type": doc["type"]},
+                })
+        except Exception as e:
+            logger.warning(f"Failed to fetch documents: {e}")
+
+        # Get Linear issues
+        try:
+            issues = (
+                self.supabase.table("linear_issues")
+                .select("id, title, description, state_name, state_type, priority, team_name, project_name, completed_at, updated_at_linear")
+                .eq("user_id", user_id)
+                .eq("is_archived", False)
+                .order("updated_at_linear", desc=True)
+                .limit(limit)
+                .execute()
+            )
+
+            for issue in issues.data or []:
+                status = f"[{issue['state_name']}]" if issue.get('state_name') else ""
+                completed = " (Completed)" if issue.get('completed_at') else ""
+                project = f" in {issue['project_name']}" if issue.get('project_name') else ""
+                team = f" ({issue['team_name']})" if issue.get('team_name') else ""
+                desc = issue.get('description', '')[:500] if issue.get('description') else ""
+
+                context_items.append({
+                    "id": issue["id"],
+                    "type": "linear_issue",
+                    "text": f"Linear Issue {status}{completed}: {issue['title']}{project}{team}\n{desc}",
+                    "metadata": {
+                        "state_type": issue.get("state_type"),
+                        "priority": issue.get("priority"),
+                        "team": issue.get("team_name"),
+                    },
+                })
+        except Exception as e:
+            logger.warning(f"Failed to fetch Linear issues: {e}")
 
         # Get recent Slack messages
-        messages = (
-            self.supabase.table("slack_messages")
-            .select("id, channel_name, text, user_name, message_at")
-            .eq("user_id", user_id)
-            .order("message_at", desc=True)
-            .limit(limit)
-            .execute()
-        )
+        try:
+            messages = (
+                self.supabase.table("slack_messages")
+                .select("id, channel_name, text, user_name, message_at")
+                .eq("user_id", user_id)
+                .order("message_at", desc=True)
+                .limit(limit)
+                .execute()
+            )
 
-        for msg in messages.data or []:
-            context_items.append({
-                "id": msg["id"],
-                "type": "slack_message",
-                "text": f"[{msg['channel_name']}] {msg['user_name']}: {msg['text']}",
-                "metadata": {"channel": msg["channel_name"]},
-            })
+            for msg in messages.data or []:
+                context_items.append({
+                    "id": msg["id"],
+                    "type": "slack_message",
+                    "text": f"[{msg['channel_name']}] {msg['user_name']}: {msg['text']}",
+                    "metadata": {"channel": msg["channel_name"]},
+                })
+        except Exception as e:
+            logger.warning(f"Failed to fetch Slack messages: {e}")
 
         return context_items
 

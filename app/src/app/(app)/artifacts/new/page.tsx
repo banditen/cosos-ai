@@ -2,14 +2,14 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, Sparkles, ChevronRight, PanelRight, PanelRightClose, FolderOpen, ArrowUp, MoreHorizontal, Play, FileText, Pencil, Check } from 'lucide-react';
-import Link from 'next/link';
+import { Loader2, Sparkles, PanelRight, PanelRightClose, ArrowUp, MoreHorizontal, Play, FileText, Pencil, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import ArtifactRenderer from '@/components/artifacts/ArtifactRenderer';
 import { supabase } from '@/lib/supabase';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { PageHeader } from '@/components/page-header';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -401,46 +401,39 @@ export default function NewArtifactPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-background -m-4">
-      {/* Den-style minimal header */}
-      <header className="flex items-center justify-between h-12 px-4 border-b bg-background">
-        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-          <Link href="/artifacts" className="hover:text-foreground transition-colors flex items-center gap-1">
-            <FolderOpen className="h-3.5 w-3.5" />
-            <span>Artifacts</span>
-          </Link>
-          <ChevronRight className="h-3.5 w-3.5" />
-          <span className="text-foreground font-medium flex items-center gap-1">
-            <Sparkles className="h-3.5 w-3.5" />
-            {productSpec?.title || 'New Artifact'}
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          {/* View mode toggle - only show when we have both spec and UI */}
-          {productSpec && uiContent && (
-            <div className="flex items-center border rounded-lg p-0.5 mr-2">
-              <Button
-                variant={viewMode === 'spec' ? 'secondary' : 'ghost'}
-                size="sm"
-                className="h-6 px-2 text-xs"
-                onClick={() => setViewMode('spec')}
-              >
-                <FileText className="h-3 w-3 mr-1" />
-                Spec
-              </Button>
-              <Button
-                variant={viewMode === 'ui' ? 'secondary' : 'ghost'}
-                size="sm"
-                className="h-6 px-2 text-xs"
-                onClick={() => setViewMode('ui')}
-              >
-                <Play className="h-3 w-3 mr-1" />
-                UI
-              </Button>
-            </div>
-          )}
-          {savedArtifact && (
-            <>
+    <div className="h-full flex flex-col bg-background">
+      {/* Header */}
+      <PageHeader
+        breadcrumbs={[
+          { label: 'Artifacts', href: '/artifacts' },
+          { label: productSpec?.title || 'New Artifact', icon: <Sparkles className="h-3.5 w-3.5" /> },
+        ]}
+        actions={
+          <>
+            {/* View mode toggle - only show when we have both spec and UI */}
+            {productSpec && uiContent && (
+              <div className="flex items-center border rounded-lg p-0.5 mr-2">
+                <Button
+                  variant={viewMode === 'spec' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  className="h-6 px-2 text-xs"
+                  onClick={() => setViewMode('spec')}
+                >
+                  <FileText className="h-3 w-3 mr-1" />
+                  Spec
+                </Button>
+                <Button
+                  variant={viewMode === 'ui' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  className="h-6 px-2 text-xs"
+                  onClick={() => setViewMode('ui')}
+                >
+                  <Play className="h-3 w-3 mr-1" />
+                  UI
+                </Button>
+              </div>
+            )}
+            {savedArtifact && (
               <span className="text-xs text-muted-foreground flex items-center gap-1">
                 {isSaving ? (
                   <Loader2 className="h-3 w-3 animate-spin" />
@@ -449,21 +442,21 @@ export default function NewArtifactPage() {
                 )}
                 {savedArtifact.phase === 'ui' ? 'Saved' : 'Draft'}
               </span>
-            </>
-          )}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => setChatOpen(!chatOpen)}
-          >
-            {chatOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRight className="h-4 w-4" />}
-          </Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </div>
-      </header>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={() => setChatOpen(!chatOpen)}
+            >
+              {chatOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRight className="h-4 w-4" />}
+            </Button>
+            <Button variant="ghost" size="icon" className="h-7 w-7">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </>
+        }
+      />
 
       {/* Main content - split view */}
       <div className="flex-1 flex overflow-hidden">

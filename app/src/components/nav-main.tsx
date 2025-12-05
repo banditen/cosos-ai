@@ -19,6 +19,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
+import { Badge } from "@/components/ui/badge"
 
 export function NavMain({
   items,
@@ -27,6 +28,7 @@ export function NavMain({
     title: string
     url: string
     icon?: LucideIcon
+    comingSoon?: boolean
     items?: {
       title: string
       url: string
@@ -42,8 +44,9 @@ export function NavMain({
         <SidebarMenu>
           {items.map((item) => {
             const hasSubItems = item.items && item.items.length > 0
+            const isComingSoon = item.comingSoon
 
-            if (hasSubItems) {
+            if (hasSubItems && !isComingSoon) {
               return (
                 <Collapsible key={item.title} asChild defaultOpen className="group/collapsible">
                   <SidebarMenuItem>
@@ -86,6 +89,26 @@ export function NavMain({
                     </CollapsibleContent>
                   </SidebarMenuItem>
                 </Collapsible>
+              )
+            }
+
+            // Coming soon items - not clickable
+            if (isComingSoon) {
+              return (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    tooltip={`${item.title} (Coming Soon)`}
+                    className="cursor-default opacity-60"
+                  >
+                    {item.icon && <item.icon />}
+                    <span className="flex items-center gap-2">
+                      {item.title}
+                      <Badge variant="outline" className="text-[10px] h-4 px-1 font-normal">
+                        Soon
+                      </Badge>
+                    </span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               )
             }
 

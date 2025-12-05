@@ -86,16 +86,19 @@ const config: Config = {
   		},
   		fontFamily: {
   			heading: [
+  				'var(--font-heading)',
   				'Space Grotesk',
   				'system-ui',
   				'sans-serif'
   			],
   			body: [
+  				'var(--font-body)',
   				'Figtree',
   				'system-ui',
   				'sans-serif'
   			],
   			sans: [
+  				'var(--font-body)',
   				'Figtree',
   				'system-ui',
   				'sans-serif'

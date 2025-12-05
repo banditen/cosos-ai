@@ -43,7 +43,7 @@ export default function AppLayout({
     <SidebarProvider>
       <AppSidebar user={userData} />
       <SidebarInset>
-        <div className="flex flex-1 flex-col p-4">
+        <div className="flex flex-1 flex-col h-screen overflow-hidden">
           {children}
         </div>
       </SidebarInset>

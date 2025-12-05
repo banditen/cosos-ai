@@ -2,46 +2,58 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Icon } from '@iconify/react';
 import { supabase } from '@/lib/supabase';
-import { Plug, Check, ExternalLink, Loader2 } from 'lucide-react';
+import { Check, ExternalLink, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { PageHeader } from '@/components/page-header';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 const INTEGRATIONS = [
   {
+    id: 'linear',
+    name: 'Linear',
+    description: 'Track issues, projects, and team progress',
+    icon: 'simple-icons:linear',
+    status: 'available',
+  },
+  {
     id: 'slack',
     name: 'Slack',
     description: 'Strategic Q&A, decision tracking, goal reminders',
-    icon: '/integrations/slack.svg',
-    category: 'Communication',
+    icon: 'simple-icons:slack',
     status: 'available',
   },
   {
     id: 'notion',
     name: 'Notion',
     description: 'Understand strategy docs, OKRs, decisions',
-    icon: '/integrations/notion.svg',
-    category: 'Knowledge Base',
+    icon: 'simple-icons:notion',
     status: 'available',
-  },
-  {
-    id: 'linear',
-    name: 'Linear',
-    description: 'Connect tickets to business objectives',
-    icon: '/integrations/linear.svg',
-    category: 'Project Management',
-    status: 'coming_soon',
   },
   {
     id: 'github',
     name: 'GitHub',
     description: 'Link code changes to business impact',
-    icon: '/integrations/github.svg',
-    category: 'Development',
+    icon: 'simple-icons:github',
+    status: 'coming_soon',
+  },
+  {
+    id: 'gmail',
+    name: 'Gmail',
+    description: 'Track important emails and communication',
+    icon: 'simple-icons:gmail',
+    status: 'coming_soon',
+  },
+  {
+    id: 'google_calendar',
+    name: 'Google Calendar',
+    description: 'Sync meetings and events',
+    icon: 'simple-icons:googlecalendar',
     status: 'coming_soon',
   },
 ];
@@ -93,17 +105,21 @@ export default function IntegrationsPage() {
   const loadConnectionStatuses = async (userId: string) => {
     const newStatuses: Record<string, ConnectionStatus> = {};
 
-    // Check Slack status
-    try {
-      const slackRes = await fetch(`${API_URL}/api/v1/slack/status?user_id=${userId}`);
-      if (slackRes.ok) newStatuses.slack = await slackRes.json();
-    } catch (e) { console.error('Slack status error:', e); }
+    // Check all integration statuses
+    const statusChecks = [
+      { id: 'linear', endpoint: 'linear' },
+      { id: 'slack', endpoint: 'slack' },
+      { id: 'notion', endpoint: 'notion' },
+    ];
 
-    // Check Notion status
-    try {
-      const notionRes = await fetch(`${API_URL}/api/v1/notion/status?user_id=${userId}`);
-      if (notionRes.ok) newStatuses.notion = await notionRes.json();
-    } catch (e) { console.error('Notion status error:', e); }
+    await Promise.all(
+      statusChecks.map(async ({ id, endpoint }) => {
+        try {
+          const res = await fetch(`${API_URL}/api/v1/${endpoint}/status?user_id=${userId}`);
+          if (res.ok) newStatuses[id] = await res.json();
+        } catch (e) { console.error(`${id} status error:`, e); }
+      })
+    );
 
     setStatuses(newStatuses);
   };
@@ -151,106 +167,94 @@ export default function IntegrationsPage() {
   }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="heading-2 text-foreground">Integrations</h1>
-          <p className="body text-foreground/70 mt-2">
-            Connect your tools to build business context
-          </p>
-        </div>
-      </div>
+    <div className="flex flex-col h-full">
+      <PageHeader breadcrumbs={[{ label: 'Integrations' }]} />
 
-      {/* Integration Grid */}
-      <div className="grid gap-4 md:grid-cols-2">
-        {INTEGRATIONS.map((integration) => {
-          const status = statuses[integration.id];
-          const isConnected = status?.connected;
-          const isComingSoon = integration.status === 'coming_soon';
-          const isConnecting = connecting === integration.id;
+      <div className="flex-1 overflow-auto p-6">
+        <div className="max-w-2xl">
+          {/* Integration List */}
+          <div className="space-y-3">
+            {INTEGRATIONS.map((integration) => {
+              const status = statuses[integration.id];
+              const isConnected = status?.connected;
+              const isComingSoon = integration.status === 'coming_soon';
+              const isConnecting = connecting === integration.id;
 
-          return (
-            <Card key={integration.id} className={isComingSoon ? 'opacity-60' : ''}>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                      <Plug className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-base flex items-center gap-2">
-                        {integration.name}
-                        {isConnected && (
-                          <Badge variant="secondary" className="text-xs">
-                            <Check className="w-3 h-3 mr-1" />
-                            Connected
-                          </Badge>
-                        )}
-                        {isComingSoon && (
-                          <Badge variant="outline" className="text-xs">
-                            Coming Soon
-                          </Badge>
-                        )}
-                      </CardTitle>
-                      <CardDescription className="text-xs">
-                        {status?.workspace_name || integration.category}
-                      </CardDescription>
-                    </div>
-                  </div>
-                  {!isComingSoon && (
-                    <div className="flex gap-2">
-                      {isConnected ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDisconnect(integration.id)}
-                          disabled={isConnecting}
-                        >
-                          {isConnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Disconnect'}
-                        </Button>
-                      ) : (
-                        <Button
-                          size="sm"
-                          onClick={() => handleConnect(integration.id)}
-                          disabled={isConnecting}
-                        >
-                          {isConnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Connect'}
-                        </Button>
+              return (
+                <Card key={integration.id} className={isComingSoon ? 'opacity-50' : ''}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-lg bg-background border flex items-center justify-center">
+                          <Icon icon={integration.icon} className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-sm">{integration.name}</span>
+                            {isConnected && (
+                              <Badge variant="secondary" className="text-xs h-5 px-1.5">
+                                <Check className="w-3 h-3 mr-1" />
+                                Connected
+                              </Badge>
+                            )}
+                            {isComingSoon && (
+                              <Badge variant="outline" className="text-xs h-5 px-1.5">
+                                Coming Soon
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            {status?.workspace_name || integration.description}
+                          </p>
+                        </div>
+                      </div>
+                      {!isComingSoon && (
+                        <div>
+                          {isConnected ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-8"
+                              onClick={() => handleDisconnect(integration.id)}
+                              disabled={isConnecting}
+                            >
+                              {isConnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Disconnect'}
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              className="h-8"
+                              onClick={() => handleConnect(integration.id)}
+                              disabled={isConnecting}
+                            >
+                              {isConnecting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Connect'}
+                            </Button>
+                          )}
+                        </div>
                       )}
                     </div>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  {integration.description}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          {/* MCP Section */}
+          <div className="mt-8">
+            <h2 className="font-heading text-base font-medium mb-3">Model Context Protocol (MCP)</h2>
+            <Card className="border-dashed border-2">
+              <CardContent className="py-6 text-center">
+                <p className="text-sm text-muted-foreground mb-3">
+                  Connect custom data sources via MCP servers
                 </p>
-                {isConnected && status?.last_sync_at && (
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Last synced: {new Date(status.last_sync_at).toLocaleString()}
-                  </p>
-                )}
+                <Button variant="outline" size="sm">
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Add MCP Server
+                </Button>
               </CardContent>
             </Card>
-          );
-        })}
-      </div>
-
-      {/* MCP Section */}
-      <div className="mt-8">
-        <h2 className="heading-3 text-foreground mb-4">Model Context Protocol (MCP)</h2>
-        <Card className="border-dashed border-2">
-          <CardContent className="pt-6 text-center">
-            <Plug className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground mb-4">
-              Connect custom data sources via MCP servers
-            </p>
-            <Button variant="outline" size="sm">
-              <ExternalLink className="w-4 h-4 mr-2" />
-              Add MCP Server
-            </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

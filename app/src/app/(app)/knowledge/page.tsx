@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { PageHeader } from '@/components/page-header';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -65,17 +66,11 @@ export default function KnowledgePage() {
   }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="heading-2 text-foreground">Knowledge</h1>
-          <p className="body text-foreground/70 mt-2">
-            Connect your knowledge bases or add content manually
-          </p>
-        </div>
-      </div>
+    <div className="flex flex-col h-full">
+      <PageHeader breadcrumbs={[{ label: 'Knowledge' }]} />
 
-      {/* Add Knowledge Options */}
+      <div className="flex-1 overflow-auto p-6">
+        {/* Add Knowledge Options */}
       <div className="grid gap-4 md:grid-cols-3 mb-8">
         <Card
           className="border-dashed border-2 hover:border-action/50 transition-colors cursor-pointer"
@@ -180,6 +175,7 @@ export default function KnowledgePage() {
           </CardContent>
         </Card>
       )}
+      </div>
     </div>
   );
 }

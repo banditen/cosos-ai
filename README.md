@@ -8,31 +8,29 @@
 
 ## 🎯 What is Cosos?
 
-Cosos connects to your existing tools (Gmail, Calendar, Linear, Slack, Notion) and gives you **instant clarity** on what matters most.
-
-### How It Works:
-1. **Connect Your Tools** - One-click OAuth for Gmail, Calendar, Linear, Slack, Notion
-2. **Get First Analysis** - AI syncs your data and shows immediate insights
-3. **Daily Clarity** - Wake up knowing your priorities
+Cosos connects to your existing tools (Linear, Slack, Notion, Gmail, Calendar) and gives you **instant clarity** on what matters most—your priorities and progress.
 
 ---
 
 ## 🚀 Current Status
 
 **Phase:** MVP Development
-**Last Updated:** December 3, 2025
+**Last Updated:** December 5, 2025
 
 ### What's Working:
 - ✅ Google OAuth login (Supabase)
-- ✅ New onboarding: Welcome → Connect Tools → Context → First Analysis
-- ✅ Integration OAuth: Gmail, Calendar, Linear, Slack, Notion
-- ✅ Data sync (emails, calendar events, Linear issues)
-- ✅ Clean minimal UI with brand identity
+- ✅ Onboarding: Welcome → Connect Tools → Context → First Analysis
+- ✅ Integration OAuth: Linear, Slack, Notion, Gmail, Calendar
+- ✅ Home page with progress dashboard (completed issues, in-progress, completion rate)
+- ✅ AI-powered context Q&A (chat with your data)
+- ✅ Knowledge base for documents
+- ✅ Clean minimal UI with consistent PageHeader navigation
+- ✅ Brand icons via Iconify/Simple Icons
 
 ### What's Next:
-- 🎯 Home page with daily insights
-- 🎯 AI-generated summaries from synced data
-- 🎯 Custom artifact builder (future phase)
+- 🎯 Expand integrations (GitHub)
+- 🎯 Custom artifact builder (prompt-driven business tools)
+- 🎯 AI agents for automation
 
 ---
 
@@ -45,6 +43,7 @@ Cosos connects to your existing tools (Gmail, Calendar, Linear, Slack, Notion) a
 | Database | Supabase (PostgreSQL + RLS) |
 | Auth | Supabase Auth (Google OAuth) |
 | AI | OpenAI GPT-4o-mini |
+| Icons | Lucide React (UI), Iconify Simple Icons (brands) |
 
 ---
 
@@ -67,33 +66,6 @@ Visit `http://localhost:3000`
 
 ---
 
-## 📁 Key Files
-
-```
-app/src/
-├── app/
-│   ├── login/page.tsx        # Login
-│   ├── setup/page.tsx        # Onboarding flow
-│   ├── auth/callback/page.tsx # OAuth callback
-│   └── (app)/home/page.tsx   # Main dashboard
-├── components/
-│   └── setup/steps/          # Onboarding step components
-└── lib/supabase.ts           # Supabase client
-
-backend/
-├── main.py                   # FastAPI app
-├── routes/
-│   ├── auth.py              # Google OAuth
-│   ├── linear.py            # Linear OAuth
-│   ├── slack.py             # Slack OAuth
-│   └── notion.py            # Notion OAuth
-└── services/                # Business logic
-```
-
----
-
 ## 📄 License
 
 MIT License
-
-**Last updated:** December 3, 2025

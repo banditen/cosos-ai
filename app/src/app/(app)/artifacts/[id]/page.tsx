@@ -8,12 +8,12 @@ import ArtifactRenderer from '@/components/artifacts/ArtifactRenderer';
 import ArtifactActions from '@/components/artifacts/ArtifactActions';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Pencil, Check, Loader2, Play, FileText, LayoutDashboard, ChevronRight, FolderOpen, ArrowUp, PanelRight, PanelRightClose, Sparkles } from 'lucide-react';
+import { Pencil, Check, Loader2, FileText, LayoutDashboard, ArrowUp, PanelRight, PanelRightClose, Sparkles } from 'lucide-react';
 import { Artifact } from '@/types/artifact';
 import { notifyArtifactChanged } from '@/lib/events';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import Link from 'next/link';
+import { PageHeader } from '@/components/page-header';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -237,51 +237,46 @@ export default function ArtifactViewPage() {
   const hasUI = artifact.content?.components?.length > 0;
 
   return (
-    <div className="h-screen flex flex-col bg-background -m-4">
+    <div className="h-full flex flex-col bg-background">
       {/* Header */}
-      <header className="flex items-center justify-between h-12 px-4 border-b">
-        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-          <Link href="/artifacts" className="hover:text-foreground transition-colors flex items-center gap-1">
-            <FolderOpen className="h-3.5 w-3.5" />
-            <span>Artifacts</span>
-          </Link>
-          <ChevronRight className="h-3.5 w-3.5" />
-          <span className="text-foreground font-medium flex items-center gap-1">
-            <Sparkles className="h-3.5 w-3.5" />
-            {artifact.title}
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          {/* View toggle */}
-          {hasUI && (
-            <div className="flex border rounded-md overflow-hidden text-xs">
-              <button
-                onClick={() => setViewMode('spec')}
-                className={`px-3 py-1 flex items-center gap-1 ${viewMode === 'spec' ? 'bg-accent' : 'hover:bg-accent/50'}`}
-              >
-                <FileText className="h-3 w-3" />
-                Spec
-              </button>
-              <button
-                onClick={() => setViewMode('ui')}
-                className={`px-3 py-1 flex items-center gap-1 ${viewMode === 'ui' ? 'bg-accent' : 'hover:bg-accent/50'}`}
-              >
-                <LayoutDashboard className="h-3 w-3" />
-                UI
-              </button>
-            </div>
-          )}
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setChatOpen(!chatOpen)}>
-            {chatOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRight className="h-4 w-4" />}
-          </Button>
-          <ArtifactActions
-            artifactId={artifact.id}
-            artifactTitle={artifact.title}
-            onRename={handleRename}
-            onDelete={handleDelete}
-          />
-        </div>
-      </header>
+      <PageHeader
+        breadcrumbs={[
+          { label: 'Artifacts', href: '/artifacts' },
+          { label: artifact.title, icon: <Sparkles className="h-3.5 w-3.5" /> },
+        ]}
+        actions={
+          <>
+            {/* View toggle */}
+            {hasUI && (
+              <div className="flex border rounded-md overflow-hidden text-xs">
+                <button
+                  onClick={() => setViewMode('spec')}
+                  className={`px-3 py-1 flex items-center gap-1 ${viewMode === 'spec' ? 'bg-accent' : 'hover:bg-accent/50'}`}
+                >
+                  <FileText className="h-3 w-3" />
+                  Spec
+                </button>
+                <button
+                  onClick={() => setViewMode('ui')}
+                  className={`px-3 py-1 flex items-center gap-1 ${viewMode === 'ui' ? 'bg-accent' : 'hover:bg-accent/50'}`}
+                >
+                  <LayoutDashboard className="h-3 w-3" />
+                  UI
+                </button>
+              </div>
+            )}
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setChatOpen(!chatOpen)}>
+              {chatOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRight className="h-4 w-4" />}
+            </Button>
+            <ArtifactActions
+              artifactId={artifact.id}
+              artifactTitle={artifact.title}
+              onRename={handleRename}
+              onDelete={handleDelete}
+            />
+          </>
+        }
+      />
 
       {/* Main content */}
       <div className="flex-1 flex overflow-hidden">

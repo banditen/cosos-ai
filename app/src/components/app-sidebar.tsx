@@ -95,11 +95,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
       title: "Agents",
       url: "/agents",
       icon: BotIcon,
-      items: agents.map(agent => ({
-        title: agent.name,
-        url: `/agents/${agent.id}`,
-        icon: FileIcon,
-      })),
+      comingSoon: true,
     },
   ]
 
@@ -123,22 +119,24 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <div className="flex items-center justify-between w-full">
-              <SidebarMenuButton
-                asChild
-                className="data-[slot=sidebar-menu-button]:!p-1.5 flex-1"
-              >
-                <a href="/home">
-                  <Image
-                    src="/logo.png"
-                    alt="Cosos"
-                    width={100}
-                    height={32}
-                    className="object-contain"
-                    priority
-                  />
-                </a>
-              </SidebarMenuButton>
+            <div className={`flex items-center w-full ${open ? 'justify-between' : 'justify-center'}`}>
+              {open && (
+                <SidebarMenuButton
+                  asChild
+                  className="data-[slot=sidebar-menu-button]:!p-1.5 flex-1"
+                >
+                  <a href="/home">
+                    <Image
+                      src="/logo.png"
+                      alt="Cosos"
+                      width={100}
+                      height={32}
+                      className="object-contain"
+                      priority
+                    />
+                  </a>
+                </SidebarMenuButton>
+              )}
               <Button
                 variant="ghost"
                 size="icon"

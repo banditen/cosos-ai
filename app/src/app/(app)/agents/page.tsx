@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { Bot, Plus, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { PageHeader } from '@/components/page-header';
 
 interface Agent {
   id: string;
@@ -53,21 +54,19 @@ export default function AgentsPage() {
   }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="heading-2 text-foreground">Agents</h1>
-          <p className="body text-foreground/70 mt-2">
-            Create specialized agents for your integrations and knowledge
-          </p>
-        </div>
-        <Button onClick={handleCreateNew} className="gap-2">
-          <Plus className="w-4 h-4" />
-          Create Agent
-        </Button>
-      </div>
+    <div className="flex flex-col h-full">
+      <PageHeader
+        breadcrumbs={[{ label: 'Agents' }]}
+        actions={
+          <Button onClick={handleCreateNew} size="sm" className="gap-2 h-7">
+            <Plus className="w-3.5 h-3.5" />
+            Create Agent
+          </Button>
+        }
+      />
 
-      {/* Agents Grid */}
+      <div className="flex-1 overflow-auto p-6">
+        {/* Agents Grid */}
       {agents.length === 0 ? (
         <Card className="text-center py-12">
           <CardContent className="pt-6">
@@ -153,6 +152,7 @@ export default function AgentsPage() {
               </p>
             </CardContent>
           </Card>
+        </div>
         </div>
       </div>
     </div>

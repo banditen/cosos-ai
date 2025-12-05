@@ -1,34 +1,100 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { BookOpen, Plug, Bot, ArrowRight, Sparkles } from 'lucide-react';
+import { CheckCircle2, Clock, Plug, TrendingUp, PanelRight, PanelRightClose } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChatInterface } from '@/components/chat/chat-interface';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ChatSidebar, ChatSidebarRef } from '@/components/chat/ChatSidebar';
+import { PageHeader } from '@/components/page-header';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+interface ProgressData {
+  completedIssues: number;
+  inProgressIssues: number;
+  totalIssues: number;
+  recentlyCompleted: { title: string; completed_at: string }[];
+}
+
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 5) return 'Good night';
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  if (hour < 21) return 'Good evening';
+  return 'Good night';
+}
 
 export default function Home() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [hasIntegrations, setHasIntegrations] = useState(false);
+  const [progress, setProgress] = useState<ProgressData>({
+    completedIssues: 0,
+    inProgressIssues: 0,
+    totalIssues: 0,
+    recentlyCompleted: [],
+  });
+  const [chatOpen, setChatOpen] = useState(true);
+  const chatRef = useRef<ChatSidebarRef>(null);
 
-  const checkIntegrations = useCallback(async (userId: string) => {
+  const handleQuickAction = (message: string) => {
+    setChatOpen(true);
+    // Small delay to ensure chat is open before sending
+    setTimeout(() => {
+      chatRef.current?.sendMessage(message);
+    }, 100);
+  };
+
+  const loadProgressData = useCallback(async (userId: string) => {
     try {
-      const [slackRes, notionRes] = await Promise.all([
-        fetch(`${API_URL}/api/v1/slack/status?user_id=${userId}`),
-        fetch(`${API_URL}/api/v1/notion/status?user_id=${userId}`),
+      // Check if any integrations are connected
+      const [linearRes, slackRes, notionRes] = await Promise.all([
+        fetch(`${API_URL}/api/v1/linear/status?user_id=${userId}`).catch(() => null),
+        fetch(`${API_URL}/api/v1/slack/status?user_id=${userId}`).catch(() => null),
+        fetch(`${API_URL}/api/v1/notion/status?user_id=${userId}`).catch(() => null),
       ]);
 
-      const slackStatus = slackRes.ok ? await slackRes.json() : { connected: false };
-      const notionStatus = notionRes.ok ? await notionRes.json() : { connected: false };
+      const linear = linearRes?.ok ? (await linearRes.json()).connected : false;
+      const slack = slackRes?.ok ? (await slackRes.json()).connected : false;
+      const notion = notionRes?.ok ? (await notionRes.json()).connected : false;
 
-      setHasIntegrations(slackStatus.connected || notionStatus.connected);
+      setHasIntegrations(linear || slack || notion);
+
+      // Get Linear issue stats
+      const [completedRes, inProgressRes, totalRes, recentRes] = await Promise.all([
+        supabase.from('linear_issues')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', userId)
+          .eq('state_type', 'completed'),
+        supabase.from('linear_issues')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', userId)
+          .eq('state_type', 'started'),
+        supabase.from('linear_issues')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', userId)
+          .eq('is_archived', false),
+        supabase.from('linear_issues')
+          .select('title, completed_at')
+          .eq('user_id', userId)
+          .eq('state_type', 'completed')
+          .not('completed_at', 'is', null)
+          .order('completed_at', { ascending: false })
+          .limit(5),
+      ]);
+
+      setProgress({
+        completedIssues: completedRes.count || 0,
+        inProgressIssues: inProgressRes.count || 0,
+        totalIssues: totalRes.count || 0,
+        recentlyCompleted: recentRes.data || [],
+      });
     } catch (e) {
-      console.error('Failed to check integrations:', e);
+      console.error('Failed to load progress:', e);
     }
   }, []);
 
@@ -40,11 +106,11 @@ export default function Home() {
         return;
       }
       setUser(user);
-      await checkIntegrations(user.id);
+      await loadProgressData(user.id);
       setLoading(false);
     };
     loadData();
-  }, [router, checkIntegrations]);
+  }, [router, loadProgressData]);
 
   if (loading) {
     return (
@@ -54,141 +120,166 @@ export default function Home() {
     );
   }
 
-  const getStartedSteps = [
-    {
-      title: 'Connect your tools',
-      description: 'Link Slack, Linear, Notion to build business context',
-      icon: Plug,
-      href: '/integrations',
-      status: 'todo',
-    },
-    {
-      title: 'Add your knowledge',
-      description: 'Import strategy docs, OKRs, and business context',
-      icon: BookOpen,
-      href: '/knowledge',
-      status: 'todo',
-    },
-    {
-      title: 'Create your first agent',
-      description: 'Build specialized agents for strategic Q&A',
-      icon: Bot,
-      href: '/agents',
-      status: 'todo',
-    },
-  ];
+  const hasProgress = progress.totalIssues > 0;
+  const firstName = user?.user_metadata?.full_name?.split(' ')[0] ||
+                    user?.email?.split('@')[0] || 'there';
 
   return (
-    <div>
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="heading-2 text-foreground">Welcome to Cosos</h1>
-        <p className="body text-foreground/70 mt-2">
-          Your business context intelligence layer
-        </p>
-      </div>
+    <div className="flex flex-col h-full">
+      {/* Page Header */}
+      <PageHeader
+        breadcrumbs={[{ label: 'Home' }]}
+        actions={
+          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setChatOpen(!chatOpen)}>
+            {chatOpen ? <PanelRightClose className="h-4 w-4" /> : <PanelRight className="h-4 w-4" />}
+          </Button>
+        }
+      />
 
-      {/* Value Proposition */}
-      <Card className="mb-8 bg-gradient-to-br from-action/5 to-action/10 border-action/20">
-        <CardContent className="pt-6">
-          <div className="flex items-start gap-4">
-            <div className="p-3 rounded-xl bg-action/10">
-              <Sparkles className="w-6 h-6 text-action" />
+      <div className="flex flex-1 overflow-hidden">
+        {/* Main Content */}
+        <div className="flex-1 overflow-auto p-6">
+          <div className="max-w-4xl">
+            {/* Welcome Header */}
+            <div className="mb-6">
+              <h1 className="text-2xl font-heading font-medium mb-1">
+                {getGreeting()}, {firstName}
+              </h1>
+              <p className="text-muted-foreground">Here&apos;s what&apos;s happening</p>
             </div>
-            <div>
-              <h2 className="heading-3 text-foreground mb-2">
-                The intelligence layer for your existing tools
-              </h2>
-              <p className="body text-foreground/70">
-                Connect your tools, add your business context, and let Cosos understand your strategy.
-                Ask questions, track decisions, and maintain team alignment—all powered by AI that actually understands your business.
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Get Started Steps */}
-      <div className="mb-8">
-        <h2 className="heading-3 text-foreground mb-4">Get Started</h2>
-        <div className="grid gap-4 md:grid-cols-3">
-          {getStartedSteps.map((step) => (
-            <Card
-              key={step.title}
-              className="hover:shadow-md transition-shadow cursor-pointer group"
-              onClick={() => router.push(step.href)}
-            >
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-action/10 group-hover:bg-action/20 transition-colors">
-                    <step.icon className="w-5 h-5 text-action" />
+          {hasIntegrations && hasProgress ? (
+            <>
+              {/* Progress Stats */}
+              <div className="grid gap-4 md:grid-cols-3 mb-6">
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-accent">
+                        <CheckCircle2 className="w-4 h-4 text-action" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-heading font-medium">{progress.completedIssues}</p>
+                        <p className="text-xs text-muted-foreground">Issues completed</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-accent">
+                        <Clock className="w-4 h-4 text-action" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-heading font-medium">{progress.inProgressIssues}</p>
+                        <p className="text-xs text-muted-foreground">In progress</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-accent">
+                        <TrendingUp className="w-4 h-4 text-action" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-heading font-medium">
+                          {progress.totalIssues > 0
+                            ? Math.round((progress.completedIssues / progress.totalIssues) * 100)
+                            : 0}%
+                        </p>
+                        <p className="text-xs text-muted-foreground">Completion rate</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Recently Completed */}
+              {progress.recentlyCompleted.length > 0 && (
+                <Card className="mb-6">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base font-heading">Recently Completed</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {progress.recentlyCompleted.map((issue, i) => (
+                        <div key={i} className="flex items-center gap-2 text-sm">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-action flex-shrink-0" />
+                          <span className="truncate">{issue.title}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Quick Actions */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base font-heading">Ask Cosos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex gap-2 flex-wrap">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs"
+                      onClick={() => handleQuickAction('What should I focus on today?')}
+                    >
+                      What should I focus on today?
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs"
+                      onClick={() => handleQuickAction('Summarize my progress')}
+                    >
+                      Summarize my progress
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs"
+                      onClick={() => handleQuickAction("What's blocked?")}
+                    >
+                      What&apos;s blocked?
+                    </Button>
                   </div>
-                  <div className="flex-1">
-                    <CardTitle className="text-base flex items-center justify-between">
-                      {step.title}
-                      <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-action transition-colors" />
-                    </CardTitle>
-                  </div>
-                </div>
-              </CardHeader>
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            /* Empty state */
+            <Card className="text-center py-12">
               <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  {step.description}
+                <div className="p-3 rounded-lg bg-accent inline-block mb-4">
+                  <Plug className="w-8 h-8 text-action" />
+                </div>
+                <h3 className="font-heading text-lg font-medium mb-2">Connect your tools</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Link Linear, Slack, or Notion to see your progress
                 </p>
+                <Button onClick={() => router.push('/integrations')}>
+                  Connect Integrations
+                </Button>
               </CardContent>
             </Card>
-          ))}
+          )}
+          </div>
         </div>
-      </div>
 
-      {/* Chat Interface */}
-      {hasIntegrations && user ? (
-        <Card className="h-[500px]">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-action" />
-              Ask Cosos
-            </CardTitle>
-            <CardDescription>
-              Ask strategic questions about your business
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="h-[calc(100%-80px)]">
-            <ChatInterface userId={user.id} className="h-full" />
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-muted-foreground" />
-              Ask Cosos
-            </CardTitle>
-            <CardDescription>
-              Connect your tools to enable strategic Q&A
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-2 flex-wrap">
-              <Button variant="outline" size="sm" disabled className="text-muted-foreground">
-                What are our Q4 priorities?
-              </Button>
-              <Button variant="outline" size="sm" disabled className="text-muted-foreground">
-                Why did we make this decision?
-              </Button>
-              <Button variant="outline" size="sm" disabled className="text-muted-foreground">
-                Is the team aligned on goals?
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground mt-3">
-              <Button variant="link" className="p-0 h-auto text-xs" onClick={() => router.push('/integrations')}>
-                Connect integrations
-              </Button>
-              {' '}to enable strategic Q&A
-            </p>
-          </CardContent>
-        </Card>
-      )}
+        {/* Chat Sidebar */}
+        {user && (
+          <ChatSidebar
+            ref={chatRef}
+            userId={user.id}
+            isOpen={chatOpen}
+          />
+        )}
+      </div>
     </div>
   );
 }

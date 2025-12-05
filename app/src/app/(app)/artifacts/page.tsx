@@ -10,6 +10,7 @@ import ArtifactActions from '@/components/artifacts/ArtifactActions';
 import { Plus, Sparkles } from 'lucide-react';
 import { Artifact } from '@/types/artifact';
 import { notifyArtifactChanged } from '@/lib/events';
+import { PageHeader } from '@/components/page-header';
 
 export default function ArtifactsPage() {
   const router = useRouter();
@@ -91,21 +92,19 @@ export default function ArtifactsPage() {
   }
 
   return (
-    <div>
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="heading-2 text-foreground">Your Artifacts</h1>
-          <p className="body text-foreground/70 mt-2">
-            Custom tools and dashboards built for your business
-          </p>
-        </div>
-        <Button onClick={handleCreateNew} className="gap-2">
-          <Plus className="w-4 h-4" />
-          Create New
-        </Button>
-      </div>
+    <div className="flex flex-col h-full">
+      <PageHeader
+        breadcrumbs={[{ label: 'Artifacts' }]}
+        actions={
+          <Button onClick={handleCreateNew} size="sm" className="gap-2 h-7">
+            <Plus className="w-3.5 h-3.5" />
+            Create New
+          </Button>
+        }
+      />
 
-{/* Artifacts Grid */}
+      <div className="flex-1 overflow-auto p-6">
+        {/* Artifacts Grid */}
 {artifacts.length === 0 ? (
   <Card className="text-center py-12 mt-8">
     <CardContent className="pt-6">
@@ -158,6 +157,7 @@ export default function ArtifactsPage() {
     ))}
   </div>
 )}
+      </div>
     </div>
   );
 }
