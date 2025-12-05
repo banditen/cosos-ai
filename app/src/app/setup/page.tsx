@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 import Loading from '@/components/Loading';
 import SetupWelcome from '@/components/setup/steps/SetupWelcome';
 import SetupIntegrations from '@/components/setup/steps/SetupIntegrations';
@@ -31,21 +32,41 @@ export default function Setup() {
     connectedIntegrations: [],
   });
 
-  // Check for OAuth callback success
+  // Check for OAuth callback success/error
   useEffect(() => {
     const oauthSuccess = searchParams.get('oauth_success');
+    const oauthError = searchParams.get('oauth_error');
     const provider = searchParams.get('provider');
 
     if (oauthSuccess === 'true' && provider) {
+      // Show success toast
+      const providerName = provider.charAt(0).toUpperCase() + provider.slice(1);
+      toast.success(`${providerName} connected successfully!`);
+
       // Update connected integrations
       setSetupData(prev => ({
         ...prev,
         connectedIntegrations: [...new Set([...prev.connectedIntegrations, provider])]
       }));
+
       // Return to integrations step
       setStep('integrations');
+
+      // Clean up URL params
+      window.history.replaceState({}, '', '/setup');
+
+      // Reload integrations from database
+      if (user) {
+        loadIntegrations(user.id);
+      }
     }
-  }, [searchParams]);
+
+    if (oauthError) {
+      toast.error(`Connection failed: ${decodeURIComponent(oauthError)}`);
+      setStep('integrations');
+      window.history.replaceState({}, '', '/setup');
+    }
+  }, [searchParams, user]);
 
   useEffect(() => {
     const checkAuth = async () => {
