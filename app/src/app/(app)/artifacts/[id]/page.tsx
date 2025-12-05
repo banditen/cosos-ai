@@ -8,7 +8,7 @@ import ArtifactRenderer from '@/components/artifacts/ArtifactRenderer';
 import ArtifactActions from '@/components/artifacts/ArtifactActions';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Pencil, Check, Loader2, FileText, LayoutDashboard, ArrowUp, PanelRight, PanelRightClose, Sparkles } from 'lucide-react';
+import { Pencil, Check, Loader2, FileText, LayoutDashboard, ArrowUp, PanelRight, PanelRightClose, Sparkles, ArrowLeft, Play } from 'lucide-react';
 import { Artifact } from '@/types/artifact';
 import { notifyArtifactChanged } from '@/lib/events';
 import ReactMarkdown from 'react-markdown';
